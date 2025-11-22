@@ -4,7 +4,7 @@ extends Node2D
 
 var recording = false
 var stored_actions : Dictionary # key is in usec
-var stored_transforms : Dictionary # key is in msec
+var stored_motion : Dictionary # key is in msec
 
 @onready var target : CollisionObject2D = get_parent()
 @onready var start_time_usec = Time.get_ticks_usec()
@@ -15,7 +15,7 @@ func start_recording():
 	if !recording:
 		recording = true
 	stored_actions = Dictionary()
-	stored_transforms = Dictionary()
+	stored_motion = Dictionary()
 	start_time_usec = Time.get_ticks_usec()
 	start_time_msec = Time.get_ticks_msec()
 	last_triggered = Time.get_ticks_msec()
@@ -24,18 +24,18 @@ func stop_recording() -> Dictionary:
 	if recording:
 		recording = false
 		var recorded_actions = stored_actions
-		var recorded_transforms = stored_transforms
+		var recorded_motion = stored_motion
 		stored_actions = Dictionary()
-		stored_transforms = Dictionary()
-		return { "actions" : recorded_actions, "transforms" :  recorded_transforms }
+		stored_motion = Dictionary()
+		return { "actions" : recorded_actions, "motion" :  recorded_motion }
 	stored_actions = Dictionary()
-	return { "actions" : {}, "transforms" :  {} }
+	return { "actions" : {}, "motion" :  {} }
 
 func process_input_action(action) -> void:
 	stored_actions[Time.get_ticks_usec() - start_time_usec] = action
 
-func _physics_process(delta: float) -> void:
+func _physics_process(_delta: float) -> void:
 	if !recording or (Time.get_ticks_msec() - last_triggered) < (1000. / triggers_per_second):
 		return
 	last_triggered = Time.get_ticks_msec()
-	stored_transforms[last_triggered - start_time_msec] = target.get_transform()
+	stored_motion[last_triggered - start_time_msec] = {"transform": target.get_transform(), "velocity": target.get_velocity() }

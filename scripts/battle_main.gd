@@ -9,9 +9,8 @@ var ship_moves = []
 var sonar_visible = false
 var sonar_speed = 0.
 var sonar_slow_speed = 0.
+var init_countdown = 2.
 
-
-var init_countdown = 4.
 func _ready():
 	$character.init_control_character()
 	$enemy.init_control_character()
@@ -58,7 +57,7 @@ func create_new_puppet(predecessor):
 	replayer.start_time_usec = Time.get_ticks_usec()
 	replayer.correction_interval_sec = 0.5
 	replayer.actions = records["actions"]
-	replayer.transforms = records["transforms"]
+	replayer.motion = records["motion"]
 	puppet.add_child(replayer, true)
 	
 	add_child(puppet)

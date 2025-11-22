@@ -1,20 +1,23 @@
 extends CharacterBody2D
 
+const CHARACTER_APPROX_SIZE: float = 100.
+
 @export var team_id = 0
 @export var spawn_position = Vector2()
 @export var color = Color()
 @export var starting_health = 10.
 
-var do_overwrite_transform = false
-var transform_to_set : Transform2D
-func overwrite_transform(new_transform) -> void:
-	transform_to_set = new_transform
-	do_overwrite_transform = true
+var do_motion_overwrite = false
+var motion_to_set : Dictionary
+func correct_motion_course(motion: Dictionary) -> void:
+	motion_to_set = motion
+	do_motion_overwrite = true
 
-func _physics_process(delta: float) -> void:
-	if do_overwrite_transform:
-		transform = transform_to_set
-		do_overwrite_transform = false
+func _physics_process(_delta: float) -> void:
+	if do_motion_overwrite:
+		transform = motion_to_set["transform"]
+		velocity = motion_to_set["velocity"]
+		do_motion_overwrite = false
 
 func init_clone(predecessor):
 	predecessor.get_node("team").init_succesor($team)
@@ -35,7 +38,14 @@ func is_alive():
 func set_highlight(yesno):
 	$target_arrow.set_visible(yesno)
 
-func _process(delta):
+var zoom_value = 0.4
+func _process(_delta):
+	if has_node("cam"):
+		var next_zoom_value = clamp($controller.top_speed / get_velocity().length() * 10., 0.25, 0.5)
+		zoom_value = lerpf(zoom_value, next_zoom_value, 0.01)
+		$cam.zoom.x = zoom_value
+		$cam.zoom.y = zoom_value
+		
 	if !is_alive():
 		unalive_me()
 
@@ -48,9 +58,9 @@ func process_input_action(action):
 func accept_damage(strength):
 	$health.accept_damage(strength)
 	if $health.health > 3:
-		explosion_shake_smooth()
+		explosion_shake_smooth($cam)
 	else:
-		explosion_shake()
+		explosion_shake($cam)
 
 func respawn():
 	$health.respawn()
@@ -74,9 +84,18 @@ func _unhandled_input(inev: InputEvent) -> void:
 				- get_global_position() \
 			).normalized()
 			action["cursor"] = assisted_direction
+			
+		# move camera lightly on boost  
+		if action["boost"]:
+			var camera_direction = $controller.intent_direction * -1
+			var boost_tween = create_tween()
+			boost_tween.tween_property($cam, "offset", camera_direction * CHARACTER_APPROX_SIZE * 2., 0.2)
+			boost_tween.tween_property($cam, "offset", Vector2(), 0.5)
+			boost_tween.chain()
+
 		process_input_action(action)
 
-func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: int = 20):
+func explosion_shake(target: Object, intensity: float = 30.0, duration: float = 0.5, frequency: int = 20):
 	var tween = create_tween()
 	
 	# Create multiple random shakes
@@ -85,12 +104,12 @@ func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: 
 			randf_range(-intensity, intensity),
 			randf_range(-intensity, intensity)
 		)
-		tween.tween_property($cam, "offset", shake_offset, duration / frequency)
+		tween.tween_property(target, "offset", shake_offset, duration / frequency)
 	
 	# Return to center
-	tween.tween_property(self, "offset", Vector2.ZERO, duration / frequency)
+	tween.tween_property(target, "offset", Vector2.ZERO, duration / frequency)
 
-func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5):
+func explosion_shake_smooth(target: Object, intensity: float = 30.0, duration: float = 0.5):
 	var tween = create_tween()
 	var steps = 10
 	
@@ -101,6 +120,6 @@ func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5):
 			randf_range(-current_intensity, current_intensity),
 			randf_range(-current_intensity, current_intensity)
 		)
-		tween.tween_property($cam, "offset", shake_offset, duration / steps)
+		tween.tween_property(target, "offset", shake_offset, duration / steps)
 	
-	tween.tween_property($cam, "offset", Vector2.ZERO, 0.1)
+	tween.tween_property(target, "offset", Vector2.ZERO, 0.1)

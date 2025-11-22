@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=21 format=3 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/recordable.gd" id="2_kjq4e"]
@@ -8,9 +8,13 @@
 [ext_resource type="Script" uid="uid://82hb1gbig1h3" path="res://scripts/sonar_sensor.gd" id="4_3fx1x"]
 [ext_resource type="Script" uid="uid://dpky47433cafo" path="res://scripts/ai_control.gd" id="5_3g8p0"]
 [ext_resource type="Texture2D" uid="uid://bs1tb484wprlw" path="res://textures/asteroid.png" id="5_7e0bu"]
+[ext_resource type="Texture2D" uid="uid://b3l70a8ih0ytb" path="res://textures/stars_larger.png" id="5_vceff"]
 [ext_resource type="Script" uid="uid://dusbajbexl3be" path="res://scripts/target_assist.gd" id="6_cj32i"]
 [ext_resource type="Texture2D" uid="uid://4vj0r5txy10y" path="res://textures/BASE.png" id="10_66ngm"]
 [ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/team.gd" id="11_hwhwn"]
+[ext_resource type="Texture2D" uid="uid://brm4ixhsdwp84" path="res://textures/stars_small_background.png" id="12_03edq"]
+[ext_resource type="Texture2D" uid="uid://xwsqnqwtnq0y" path="res://textures/stars_medium.png" id="13_6ni85"]
+[ext_resource type="Texture2D" uid="uid://c17dww6b56361" path="res://textures/stars_large.png" id="14_vceff"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gqr64"]
 font_size = 100
@@ -33,6 +37,68 @@ radius = 249.12848
 
 [node name="battle" type="Node2D"]
 script = ExtResource("1_j7yva")
+
+[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+offset = Vector2(1024, 0)
+transform = Transform2D(1, 0, 0, 1, 1024, 0)
+
+[node name="background_layer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.001, 0.001)
+motion_offset = Vector2(2048, 2048)
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer"]
+texture_repeat = 3
+texture = ExtResource("12_03edq")
+region_enabled = true
+region_rect = Rect2(0, 0, 4096, 4096)
+
+[node name="background_layer2" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.002, 0.002)
+motion_offset = Vector2(2048, 2048)
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer2"]
+texture_repeat = 3
+texture = ExtResource("13_6ni85")
+region_enabled = true
+region_rect = Rect2(0, 0, 4096, 4096)
+
+[node name="planet_layer" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.05, 0.05)
+motion_offset = Vector2(1024, 1024)
+motion_mirroring = Vector2(32184, 32184)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/planet_layer"]
+texture_repeat = 3
+texture = ExtResource("5_vceff")
+region_rect = Rect2(0, 0, 2048, 2048)
+
+[node name="background_layer3" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.003, 0.003)
+motion_offset = Vector2(2048, 2048)
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer3"]
+texture_repeat = 3
+texture = ExtResource("14_vceff")
+flip_h = true
+flip_v = true
+region_enabled = true
+region_rect = Rect2(0, 0, 4096, 4096)
+
+[node name="background_layer4" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.004, 0.004)
+motion_offset = Vector2(2048, 2048)
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer4"]
+texture_repeat = 3
+texture = ExtResource("14_vceff")
+flip_h = true
+flip_v = true
+region_enabled = true
+region_rect = Rect2(0, 0, 4096, 4096)
 
 [node name="GUI" type="CanvasLayer" parent="."]
 
@@ -58,19 +124,17 @@ script = ExtResource("3_m8v8v")
 radius = 100.0
 
 [node name="sonar_sensor" type="RayCast2D" parent="."]
-position = Vector2(573, 324)
+position = Vector2(576, 324)
 rotation = -1.47131
 target_position = Vector2(5000, 0)
 script = ExtResource("4_3fx1x")
 rotation_speed = 0.05
 
 [node name="character" parent="." instance=ExtResource("2_sm623")]
-position = Vector2(573, 324)
+position = Vector2(576, 324)
 rotation = 2.35619
 team_id = 1
-spawn_position = Vector2(0, 0)
 color = Color(1, 1, 1, 1)
-starting_health = 10.0
 
 [node name="RemoteTransform2D" type="RemoteTransform2D" parent="character"]
 remote_path = NodePath("../../sonar_sensor")
@@ -98,7 +162,6 @@ rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
-starting_health = 10.0
 
 [node name="ai_control" type="Node2D" parent="enemy"]
 rotation = 3.14159

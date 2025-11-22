@@ -19,9 +19,10 @@ Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
 		- speed is capped to: top_speed
 		- deceleration: x^2
 """
-@export_range(0.001, 5000) var top_speed = 0.5
-@export_range(1, 5000) var start_resistance = 10
-@export_range(1, 5000) var stop_resistance = 5
+@export_range(0.001, 200) var top_speed = 0.5
+@export_range(1, 100) var start_resistance = 10
+@export_range(1, 100) var stop_resistance = 5
+@export_range(10., 100.) var booster_strength = 100.
 
 """
 From 0 to the top speed the curve the player changes speed is based on x^2 / @start_resistance.
@@ -90,8 +91,11 @@ func stop() -> void:
 func process_input_action(action):
 	intent_direction += action["intent"]
 	intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
+	
+	if action["boost"]:
+		internal_force = intent_direction * top_speed * booster_strength
 
-func _process(delta):
+func _process(_delta):
 	var previous_intent = intent_force * 0.9
 	var current_intent = Vector2()
 	var x
@@ -125,5 +129,5 @@ func _process(delta):
 	character.move_and_slide()
 	
 	"""Apply angle based on speed"""
-	if 0.1 < intent_force.length():
+	if 0.05 < intent_force.length():
 		character.set_rotation(intent_force.angle())

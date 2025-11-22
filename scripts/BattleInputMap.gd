@@ -38,4 +38,10 @@ static func get_action(viewport, subject_global_position, input_event):
 	else:
 		action["cursor"] = Vector2()
 		action["pewpew"] = false
+		
+	if input_event.is_action_pressed("boost"):
+		action["boost"] = true
+	else:
+		action["boost"] = false
+		
 	return action

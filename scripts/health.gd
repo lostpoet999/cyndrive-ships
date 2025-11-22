@@ -1,6 +1,6 @@
 extends Node2D
 
-var starting_health = 10
+@export var starting_health = 10
 
 var health = starting_health
 var is_alive = true

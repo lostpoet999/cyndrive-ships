@@ -4,14 +4,15 @@ extends Node2D
 var start_time_usec # in microseconds, from Time.get_ticks_usec()
 var correction_interval_sec
 var actions: Dictionary # key is in usec
-var transforms: Dictionary # key is in msec
+var motion: Dictionary # key is in msec
+var velos: Dictionary # key is in msec
 #endregion
 
 @export var corrections_per_second = 4
 
 @onready var start_time_msec = start_time_usec / 1000.
 @onready var current_action_key = 0
-@onready var current_transform_key = 0
+@onready var current_motion_key = 0
 @onready var replay_enabled = true
 @onready var ship = get_parent()
 
@@ -21,7 +22,7 @@ var last_corrected
 
 func reset() -> void:
 	current_action_key = 0
-	current_transform_key = 0
+	current_motion_key = 0
 	replay_enabled = true
 	start_time_usec = Time.get_ticks_usec()
 	start_time_msec = Time.get_ticks_msec()
@@ -64,28 +65,28 @@ func _process(delta: float) -> void:
 	# Apply position correction
 	# BUT only when the transform key points inside the transform array
 	if( \
-		current_transform_key < transforms.keys().size() \
+		current_motion_key < motion.keys().size() \
 		and (Time.get_ticks_msec() - last_corrected) > (1000. / corrections_per_second) \
 	):
 		while( \
-			current_transform_key < transforms.keys().size() \
-			and transforms.keys()[current_transform_key] < (Time.get_ticks_msec() - start_time_msec) \
-		): # step the transforms pointer forward until the current start time frame is reached
-			current_transform_key += 1
-		if current_transform_key >= transforms.keys().size():
-			return # No upcoming positions are stored
-		var transform_stored_at = transforms.keys()[current_transform_key]
-		var delta_to_next_transfrom = transform_stored_at - (Time.get_ticks_msec() - start_time_msec)
-		if delta_to_next_transfrom >= (last_frame_duration_usec / 1000.):
+			current_motion_key < motion.keys().size() \
+			and motion.keys()[current_motion_key] < (Time.get_ticks_msec() - start_time_msec) \
+		): # step the motion pointer forward until the current start time frame is reached
+			current_motion_key += 1
+		if current_motion_key >= motion.keys().size():
+			return # No upcoming motion is stored
+		var motion_stored_at = motion.keys()[current_motion_key]
+		var delta_to_next_motion = motion_stored_at - (Time.get_ticks_msec() - start_time_msec)
+		if delta_to_next_motion >= (last_frame_duration_usec / 1000.):
 			return # Do not apply transform if it's from a time after the current frame
 		
 		if( \
-			0 < delta_to_next_transfrom \
-			and delta_to_next_transfrom < (physics_interval_sec - time_since_last_physics_step_sec) * 1000. \
+			0 < delta_to_next_motion \
+			and delta_to_next_motion < (physics_interval_sec - time_since_last_physics_step_sec) * 1000. \
 		): 
 			# if needed, await the exact time to apply the position correction
 			# but only wait for the 90% of the delta to account for delays in this function call (estimation)
-			await get_tree().create_timer((delta_to_next_transfrom) * 9000.).timeout 
-		if -(last_frame_duration_usec / 2.) < (delta_to_next_transfrom * 1000.):
+			await get_tree().create_timer((delta_to_next_motion) * 9000.).timeout 
+		if -(last_frame_duration_usec / 2.) < (delta_to_next_motion * 1000.):
 			# only correct the position if it was relatively close to the current frame
-			ship.overwrite_transform(transforms[transforms.keys()[current_transform_key]])
+			ship.correct_motion_course(motion[motion.keys()[current_motion_key]])
