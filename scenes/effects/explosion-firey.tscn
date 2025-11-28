@@ -1,0 +1,5 @@
+[gd_scene format=3 uid="uid://btx22762p6sdy"]
+
+[node name="ExplosionFirey" type="Node2D"]
+
+[node name="CPUParticles2D" type="CPUParticles2D" parent="."]
