@@ -21,19 +21,32 @@ func _ready():
 	$character.accepts_input(false)
 	sonar_speed = $sonar_sensor.rotation_speed
 	sonar_slow_speed = $sonar_sensor.rotation_speed / 4.
-	$enemy/ai_control.enabled = false
+	$enemy/ai_control.stop()
 	
+var reverse_hold_time = 0.
+var reverse_being_held = false
+var reverse_initiated = false
+const short_reverse_hold_time_sec = 0.15 # How long to hold down the reverse action to start reversing time, instead of restarting the round
+
+var debug_lines = []
+func _draw() -> void:
+	for line in debug_lines:
+		draw_line(line.from.get_origin(), line.to.get_origin(), line.color, 3.0)
+
 func _process(delta):
+	# Countdown to battle start
 	if 0 < init_countdown:
-		init_countdown -= delta
+		init_countdown = max(init_countdown - delta, 0)
 		$GUI/score.set_text("%0.3f" % init_countdown)
 		if 0 >= init_countdown:
 			$character.accepts_input(true)
+			BattleTimeline.instance.reset()
 			$character/move_recorder.start_recording()
 			$enemy/move_recorder.start_recording()
-			$enemy/ai_control.enabled = true
+			$enemy/ai_control.resume()
 		return
 	
+	# Team size label update
 	var counts = Dictionary()
 	counts[1] = 0
 	counts[2] = 0
@@ -47,17 +60,42 @@ func _process(delta):
 		var direction = (get_global_mouse_position() - $character.get_global_position()).normalized()
 		$sonar_sensor.set_manual_rotation(direction.angle())
 	
+	# Handling Timeline reverse
+	if reverse_being_held:
+		reverse_hold_time += delta
+		if reverse_hold_time > short_reverse_hold_time_sec:
+			BattleTimeline.instance.reverse(delta)
+	if reverse_initiated:
+		if not reverse_being_held:
+			# Short rewind press: assign the recorded moves to puppets and reset the battleground
+			if reverse_hold_time <= short_reverse_hold_time_sec:
+				$character/controller.stop()
+				$enemy/controller.stop()
+				create_new_puppet($character)
+				create_new_puppet($enemy)
+				BattleTimeline.instance.reset()
+				debug_lines.clear()
+				queue_redraw()
+			else: 
+				BattleTimeline.instance.finish_reverse()
+			reverse_hold_time = 0.
+			reverse_initiated = false
+
 func create_new_puppet(predecessor):
 	var records = predecessor.get_node("move_recorder").stop_recording()
 	var puppet = character_template.instantiate();
-	puppet.init_clone(predecessor)
 	var replayer = Node2D.new()
-	replayer.set_script(preload("res://scripts/replayable.gd"))
+	puppet.init_clone(predecessor)
+	replayer.set_script(preload("res://scripts/temporal_replayer.gd"))
 	replayer.name = "replayer"
-	replayer.start_time_usec = Time.get_ticks_usec()
-	replayer.correction_interval_sec = 0.5
 	replayer.actions = records["actions"]
 	replayer.motion = records["motion"]
+	BattleTimeline.instance.connect("round_reset", puppet.respawn)
+	BattleTimeline.instance.connect("rewind_started", puppet.pause_control)
+	BattleTimeline.instance.connect("rewind_stopped", puppet.resume_control)
+	BattleTimeline.instance.connect("round_reset", replayer.reset)
+	BattleTimeline.instance.connect("round_reset", replayer.start_replay)
+	replayer.reset()
 	puppet.add_child(replayer, true)
 	
 	add_child(puppet)
@@ -68,6 +106,15 @@ func create_new_puppet(predecessor):
 
 func _unhandled_input(event):
 	var just_pressed = event.is_pressed() and not event.is_echo()
+
+	if event.is_action_pressed("replay") and just_pressed:
+		reverse_being_held = true
+		$GUI/reverse_marker.visible = true
+	if event.is_action_released("replay"):
+		reverse_being_held = false
+		$GUI/reverse_marker.visible = false
+	reverse_initiated = reverse_initiated or reverse_being_held
+
 	if event.is_action_pressed("radar") and just_pressed:
 		$sonar_sensor.rotation_speed = sonar_speed
 		sonar_visible = true
@@ -88,16 +135,3 @@ func _unhandled_input(event):
 	if event.is_action_released("radar-control"):
 		sonar_visible = false
 		$sonar_sensor.direct_control = false
-		
-	if event.is_action_pressed("replay"):
-		# assign the recorded moves to puppets
-		create_new_puppet($character)
-		create_new_puppet($enemy)
-
-		# reset battleground
-		$character.respawn()
-		$enemy.respawn()
-		for i in ship_moves.size():
-			ships[i].respawn()
-			if ships[i].has_node("replayer"):
-				ships[i].get_node("replayer").reset()

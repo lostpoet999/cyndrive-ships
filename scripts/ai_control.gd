@@ -12,8 +12,16 @@ extends Node2D
 var chosen_target : CharacterBody2D
 var laser_direction : Vector2
 var enabled = true
-var count_up = 0
-var time_since_laser = 0
+var time_since_laser = 0.
+
+func stop() -> void:
+	enabled = false
+	chosen_target = null
+	laser_direction = Vector2()
+	time_since_laser = 0.
+
+func resume() -> void:
+	enabled = true
 
 func _process(delta):
 	if not enabled:
@@ -29,7 +37,6 @@ func _process(delta):
 
 	var combatants = character.get_parent().combatants
 	var to_target : Vector2
-	var changed_target = false
 
 	# If chosen target is not alive anymore..
 	if chosen_target != null and ("is_alive" not in chosen_target or not chosen_target.is_alive()):
@@ -50,7 +57,6 @@ func _process(delta):
 			) \
 		:
 			chosen_target = random_target
-			changed_target = true
 
 	if chosen_target != null:
 		var target_direction = Vector2( \

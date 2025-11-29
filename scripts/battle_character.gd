@@ -1,4 +1,4 @@
-extends CharacterBody2D
+class_name BattleCharacter extends CharacterBody2D
 
 const CHARACTER_APPROX_SIZE: float = 100.
 
@@ -6,18 +6,52 @@ const CHARACTER_APPROX_SIZE: float = 100.
 @export var spawn_position = Vector2()
 @export var color = Color()
 @export var starting_health = 10.
+@export var target_assist_shape: CollisionShape2D
 
-var do_motion_overwrite = false
+var target_assist_original_size: float = 150.
+func _ready() -> void:
+	if target_assist_shape:
+		target_assist_original_size = target_assist_shape.shape.radius
+
+static func lerp_motion(a: Dictionary, b: Dictionary, weight: float) -> Dictionary:
+	return { \
+		"transform" : lerp(a["transform"], b["transform"], weight), \
+		"velocity" : lerp(a["velocity"], b["velocity"], weight), \
+	}
+
+func get_motion() -> Dictionary:
+	return {"transform": transform, "velocity": velocity}
+
+var motion_update_started = false
+var motion_overwrite_time_msec: float = 0.
 var motion_to_set : Dictionary
-func correct_motion_course(motion: Dictionary) -> void:
+var debug_color: Color = Color.from_hsv(randf() * 6., 1., 1., 1.)
+func correct_motion_course(motion: Dictionary, over_time_msec: float) -> void:
 	motion_to_set = motion
-	do_motion_overwrite = true
-
-func _physics_process(_delta: float) -> void:
-	if do_motion_overwrite:
-		transform = motion_to_set["transform"]
-		velocity = motion_to_set["velocity"]
-		do_motion_overwrite = false
+	motion_overwrite_time_msec = abs(over_time_msec)
+	# DEBUG FOR MOTION CORRECTION
+	get_parent().debug_lines.append({"from": transform, "to": motion_to_set["transform"], "color": debug_color})
+	get_parent().queue_redraw()
+	motion_update_started = true
+	
+func _physics_process(delta: float) -> void:
+	if 0 < motion_overwrite_time_msec:
+		var this_frame_msec = delta * 1000
+		var weight_in_interpolation = this_frame_msec / motion_overwrite_time_msec
+		if motion_overwrite_time_msec < this_frame_msec:
+			weight_in_interpolation = 1.
+		var interpolated_motion = lerp_motion(get_motion(), motion_to_set, clamp(weight_in_interpolation * weight_in_interpolation, 0., 1.))
+		transform = interpolated_motion["transform"]
+		velocity = interpolated_motion["velocity"]
+		
+		if motion_update_started:
+			if "internal_force" in motion_to_set:
+				$controller.internal_force = motion_to_set["internal_force"]
+			if "intent_force" in motion_to_set:
+				$controller.intent_force = motion_to_set["intent_force"]
+		motion_overwrite_time_msec -= delta * 1000
+	else:
+		motion_update_started = false
 
 func init_clone(predecessor):
 	predecessor.get_node("team").init_succesor($team)
@@ -26,11 +60,6 @@ func init_clone(predecessor):
 func init_control_character():
 	$team.initialize(team_id, spawn_position, color)
 	$skin.self_modulate = $team.color
-
-var accept_keyboard_inputs = false
-func accepts_input(yesno):
-	accept_keyboard_inputs = yesno
-	$controller.stop()
 
 func is_alive():
 	return $health.is_alive
@@ -45,6 +74,8 @@ func _process(_delta):
 		zoom_value = lerpf(zoom_value, next_zoom_value, 0.01)
 		$cam.zoom.x = zoom_value
 		$cam.zoom.y = zoom_value
+		if target_assist_shape:
+			target_assist_shape.shape.radius = target_assist_original_size * (0.5 / zoom_value)
 		
 	if !is_alive():
 		unalive_me()
@@ -65,6 +96,10 @@ func accept_damage(strength):
 func respawn():
 	$health.respawn()
 	$controller.move_to_spawn_pos()
+	if has_node("replayer"):
+		$replayer.reset()
+	$controller.stop()
+	set_velocity(Vector2())
 	set_collision_layer_value(1, true)
 	set_visible(true)
 
@@ -74,8 +109,25 @@ func unalive_me():
 	if has_node("ai_control"):
 		$ai_control.enabled = false
 
+var accepted_input_previously = false
+func pause_control() -> void:
+	accepted_input_previously = accept_inputs
+	accept_inputs = false
+	$controller.stop()
+	if has_node("ai_control"):
+		$ai_control.stop()
+		
+func resume_control() -> void:
+	accept_inputs = accepted_input_previously
+	if has_node("ai_control"):
+		$ai_control.resume()
+
+var accept_inputs = false
+func accepts_input(yesno):
+	accept_inputs = yesno
+
 func _unhandled_input(inev: InputEvent) -> void:
-	if(accept_keyboard_inputs):
+	if(accept_inputs):
 		var action = BattleInputMap.get_action(get_viewport(), get_global_position(), inev)
 		var target_assist = get_parent().get_node("target_assist")
 		if target_assist.is_target_locked():

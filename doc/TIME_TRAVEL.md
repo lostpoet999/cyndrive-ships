@@ -16,12 +16,17 @@ Input data is stored whenever an action is processed, in microseconds resolution
 Actions are created from InputEvents from `_unhandled_input` through the global class `BattleInputMap`.
 Action structure is documented in the class, it contains user movement and action intention.
 
+### Input data records -- motion
+Motion related data is stored on given intervals, and can ship travel course can be corrected based on it.
+The structure of a motion entry is as follows:
+`{ "transform": Tranform2D, "velocity": Vector2, "intent_force": Vector2, "internal_force": Vector2 }`
+
 ## Input data records -- transforms
 Input data is stored of the monitored entitys `Transform2D`, in every `_physics_process` of the recorded, in millsecond resolution.
 
 ## Input data records -- recording
-One recording contains both the actions and the transforms in a Dictionary. 
-e.g. an empty record: `{ "actions" : {}, "transforms" :  {} }`
+One recording contains both the actions and the motion in a Dictionary. 
+e.g. an empty record: `{ "actions" : {}, "motion" :  {} }`
 
 # Replaying records
 To initialize an entity to be replayed, it is to have a child node named `replayer`

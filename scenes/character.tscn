@@ -1,11 +1,11 @@
 [gd_scene load_steps=10 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/controllable2d.gd" id="1_4dcfn"]
-[ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/character.gd" id="1_gqnfm"]
+[ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
 [ext_resource type="Texture2D" uid="uid://cm6fobaf78bk1" path="res://textures/battle_ship.png" id="3_a5ia6"]
 [ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/team.gd" id="3_j5io8"]
 [ext_resource type="Script" uid="uid://biil32ytxamuc" path="res://scripts/laser_beam_ray.gd" id="4_2t4uj"]
-[ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/BattleInputMap.gd" id="6_pscbx"]
+[ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle_input_map.gd" id="6_pscbx"]
 [ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/health.gd" id="7_1bsqs"]
 [ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="8_pt8yu"]
 
