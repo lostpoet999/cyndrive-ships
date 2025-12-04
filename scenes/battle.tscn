@@ -131,7 +131,6 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("3_m8v8v")
-radius = 100.0
 
 [node name="reverse_marker" type="Label" parent="GUI"]
 visible = false

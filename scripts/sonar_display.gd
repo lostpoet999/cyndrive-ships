@@ -12,5 +12,8 @@ func erase_node(node):
 	node.queue_free()
 
 func add_display_object(parent: Node2D, parent_offset: int, target: Node2D, p_color: Color):
+	if not visible:
+		return
+	
 	var sonar_blip = SONAR_BLIP_SCENE.instantiate()
 	sonar_blip.init(parent, parent_offset, target, p_color)
