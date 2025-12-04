@@ -18,23 +18,11 @@ func init(p_parent: Node2D, p_parent_offset: int, p_target: Node2D, p_color: Col
 func _ready() -> void:
 	pip.modulate = color
 	pip.offset = Vector2(0,-parent_offset)
+	## make sprite disappear
+	var tween = create_tween()
+	tween.tween_property(pip, "modulate", Color(1.,1.,1.,0.), 0.9)
+	tween.finished.connect(queue_free)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(_delta: float) -> void:
 	look_at(target.global_position)
-	
-	
-#
-#var screen_center = get_viewport_rect().size / 2.
-#var direction = relative_pos.normalized();
-#var sprite = Sprite2D.new()
-#sprite.texture = preload("res://textures/sonar_blip.png")
-#sprite.set_position(screen_center + direction * radius)
-#sprite.set_rotation(direction.angle() + PI/2.)
-#sprite.modulate = modulate_color
-#$"..".add_child(sprite)	
-#
-## make sprite disappear
-#var tween = create_tween()
-#tween.tween_property(sprite, "modulate", Color(1.,1.,1.,0.), 0.9)
-#tween.tween_callback(erase_node.bind(sprite))
