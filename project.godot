@@ -13,7 +13,6 @@ config_version=5
 config/name="Cyndrive Ships"
 run/main_scene="uid://b3trh6sc7bkeq"
 config/features=PackedStringArray("4.5", "GL Compatibility")
-config/icon="uid://dhi7cyliyf7lw"
 config/size/mode=0
 
 [display]
@@ -21,9 +20,13 @@ config/size/mode=0
 window/size/viewport_width=1920
 window/size/viewport_height=1080
 
+[dotnet]
+
+project/assembly_name="Cyndrive Ships"
+
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/SimpleTODO/plugin.cfg")
+enabled=PackedStringArray()
 
 [input]
 
