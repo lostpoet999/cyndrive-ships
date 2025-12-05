@@ -10,10 +10,12 @@ var init_countdown = 2.
 func _ready():
 	$combatants/character.init_control_character()
 	$combatants/enemy.init_control_character()
-	$combatants/character.accepts_input(false)
+	$combatants/character.accepts_input(true)
+	$combatants/character/controller.stop()
 	sonar_speed = $sonar_sensor.rotation_speed
 	sonar_slow_speed = $sonar_sensor.rotation_speed / 4.
 	$combatants/enemy/ai_control.stop()
+	$combatants/enemy/controller.stop()
 	
 	for combatant in $combatants.get_children():
 		combatant.move_to_spawn_position()
@@ -48,9 +50,9 @@ func _process(delta):
 		init_countdown = max(init_countdown - delta, 0)
 		$GUI/score.set_text("%0.3f" % init_countdown)
 		if 0 >= init_countdown:
-			$combatants/character.accepts_input(true)
+			$combatants/character.resume_control()
+			$combatants/enemy.resume_control()
 			$timeline.reset()
-			$combatants/enemy/ai_control.resume()
 		return
 	
 	# Team size label update

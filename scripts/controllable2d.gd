@@ -2,6 +2,7 @@ extends Node2D
 
 @onready var character = get_parent()
 @onready var team = get_parent().get_node("team")
+var enabled = false
 var intent_direction = Vector2()
 var intent_force = Vector2()
 var internal_force = Vector2()
@@ -78,12 +79,18 @@ func get_vector(event, p_deadzone = -1.):
 	else:
 		return vector * inverse_lerp(deadzone, 1. , length) / length
 
+func start() -> void:
+	enabled = true
+
+func pause() -> void:
+	enabled = false
+
 func stop() -> void:
-	intent_direction = Vector2()
+	enabled = false
 	intent_force = Vector2()
 	internal_force = Vector2()
 
-func process_input_action(action):
+func process_input_action(action: Dictionary) -> void:
 	intent_direction += action["intent"]
 	intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
 	
@@ -115,14 +122,15 @@ func _process(_delta):
 		x = get_decel_x(abs(previous_intent.y))
 		current_intent.y = decelerate_function(x - 1) * sign(previous_intent.y)
 	current_intent = current_intent.clamp(-Vector2(top_speed,top_speed), Vector2(top_speed,top_speed))
-	
-	"""Apply the new speed"""
+
 	intent_force = current_intent
-	internal_force *= 0.99
-	internal_force += intent_force
-	character.set_velocity(internal_force)
-	character.move_and_slide()
-	
-	"""Apply angle based on speed"""
-	if 0.05 < intent_force.length():
-		character.set_rotation(intent_force.angle())
+	if enabled:
+		"""Apply the new speed"""
+		internal_force *= 0.99
+		internal_force += intent_force
+		character.set_velocity(internal_force)
+		character.move_and_slide()
+
+		"""Apply angle based on speed"""
+		if 0.05 < intent_force.length():
+			character.set_rotation(intent_force.angle())

@@ -77,7 +77,7 @@ func init_control_character():
 func is_alive():
 	return self.has_node("health") and $health.is_alive
 
-func set_highlight(yesno):
+func set_highlight(yesno: bool) -> void:
 	$target_arrow.set_visible(yesno)
 
 var zoom_value = 0.4
@@ -92,12 +92,6 @@ func _process(_delta):
 	if !is_alive():
 		unalive_me()
 
-func process_input_action(action):
-		$controller.process_input_action(action)
-		$laser_beam.process_input_action(action)
-		if has_node("temporal_recorder"):
-			$temporal_recorder.process_input_action(action)
-		
 func accept_damage(strength):
 	$health.accept_damage(strength)
 	if $health.health > 3:
@@ -116,6 +110,7 @@ func respawn():
 	set_visible(true)
 	$health.respawn()
 	$controller.stop()
+	$controller.start()
 	if has_node("temporal_recorder"):
 		$temporal_recorder.start_recording()
 	if has_node("replayer"):
@@ -132,28 +127,29 @@ func resurrect_me():
 	set_visible(true)
 	if has_node("ai_control"):
 		$ai_control.enabled = true
-	
-
-var accepted_input_previously = false
-func pause_control() -> void:
-	accepted_input_previously = accept_inputs
-	accept_inputs = false
-	$controller.stop()
-	if has_node("ai_control"):
-		$ai_control.stop()
-		
-func resume_control() -> void:
-	accept_inputs = accepted_input_previously
-	if has_node("ai_control"):
-		$ai_control.resume()
 
 var accept_inputs = false
+var control_enabled = false
 func accepts_input(yesno):
 	accept_inputs = yesno
 
+func pause_control() -> void:
+	control_enabled = false
+	$controller.stop()
+	if has_node("ai_control"):
+		$ai_control.stop()
+
+func resume_control() -> void:
+	control_enabled = true
+	$controller.start()
+	if has_node("ai_control"):
+		$ai_control.resume()
+
 func _unhandled_input(inev: InputEvent) -> void:
-	if(accept_inputs):
-		var action = BattleInputMap.get_action(get_viewport(), get_global_position(), inev)
+	if not accept_inputs:
+		return;
+	var action = BattleInputMap.get_action(get_viewport(), get_global_position(), inev)
+	if(control_enabled):
 		if $"../../target_assist".is_target_locked():
 			var assisted_direction = ($"../../target_assist".get_current_target_position() - get_global_position()).normalized()
 			action["cursor"] = assisted_direction
@@ -165,8 +161,14 @@ func _unhandled_input(inev: InputEvent) -> void:
 			boost_tween.tween_property($cam, "offset", camera_direction * CHARACTER_APPROX_SIZE * 2., 0.2)
 			boost_tween.tween_property($cam, "offset", Vector2(), 0.5)
 			boost_tween.chain()
+	process_input_action(action)
 
-		process_input_action(action)
+func process_input_action(action):
+	$controller.process_input_action(action)
+	if(control_enabled):
+		$laser_beam.process_input_action(action)
+		if has_node("temporal_recorder"):
+			$temporal_recorder.process_input_action(action)
 
 func explosion_shake(target: Object, intensity: float = 30.0, duration: float = 0.5, frequency: int = 20):
 	var tween = create_tween()
