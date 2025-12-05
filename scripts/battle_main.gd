@@ -10,7 +10,7 @@ var init_countdown = 2.
 func _ready():
 	$combatants/character.init_control_character()
 	$combatants/enemy.init_control_character()
-	$combatants/character.accepts_input(true)
+	$combatants/character.accepts_user_input(true)
 	$combatants/character/controller.stop()
 	sonar_speed = $sonar_sensor.rotation_speed
 	sonar_slow_speed = $sonar_sensor.rotation_speed / 4.

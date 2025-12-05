@@ -19,7 +19,7 @@ Action structure is documented in the class, it contains user movement and actio
 ### Input data records -- motion
 Motion related data is stored on given intervals, and can ship travel course can be corrected based on it.
 The structure of a motion entry is as follows:
-`{ "transform": Tranform2D, "velocity": Vector2, "intent_force": Vector2, "internal_force": Vector2 }`
+`{ "transform": Tranform2D, "velocity": Vector2, "internal_force": Vector2 }`
 
 ## Input data records -- transforms
 Input data is stored of the monitored entitys `Transform2D`, in every `_physics_process` of the recorded, in millsecond resolution.

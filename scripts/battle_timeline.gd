@@ -33,7 +33,6 @@ var player_timeline_start_usec: int
 var player_rewind_amount_sec: float
 var player_reverse_started_on_msec: float = 0.
 var player_reverse_started_on_usec: int = 0
-var player_timeline_current_time_sec = 0.
 
 ## Resetting sets the relative timestamp to be of the current time, and restarts the battle
 func reset() -> void:
@@ -43,7 +42,6 @@ func reset() -> void:
 	player_rewind_amount_sec = 0.
 	player_reverse_started_on_msec = 0.
 	player_reverse_started_on_usec = 0
-	player_timeline_current_time_sec = 0.
 	round_reset.emit()
 
 func time_usec() -> int:
@@ -81,9 +79,6 @@ func finish_reverse() -> void:
 	time_flow = TimeFlow.FORWARD
 	rewind_stopped.emit()
 
-func _process(delta: float) -> void:
-	player_timeline_current_time_sec += delta
-	
 func _enter_tree() -> void:
 	if instance == null:
 		_instance = self

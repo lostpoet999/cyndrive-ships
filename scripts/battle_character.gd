@@ -7,6 +7,7 @@ const CHARACTER_APPROX_SIZE: float = 100.
 @export var color = Color()
 @export var starting_health = 10.
 @export var target_assist_shape: CollisionShape2D
+@export var temporal_correction_distance_threshold: float = CHARACTER_APPROX_SIZE / 2.
 
 var target_assist_original_size: float = 150.
 func _ready() -> void:
@@ -14,27 +15,31 @@ func _ready() -> void:
 	if target_assist_shape:
 		target_assist_original_size = target_assist_shape.shape.radius
 
-var temporal_update_started = false
-var temporal_overwrite_time_msec: float = 0.
-var snapshot_to_set : Dictionary
 var debug_color: Color = Color.from_hsv(randf() * 6., 1., 1., 1.)
 func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void:
-	snapshot_to_set = snapshot
-	temporal_overwrite_time_msec = abs(over_time_msec)
-	# DEBUG FOR MOTION CORRECTION
-	get_parent().get_parent().display_line(transform.get_origin(), snapshot_to_set["transform"].get_origin(), debug_color)
-	temporal_update_started = true
-	if "health" in snapshot_to_set:
+	# DEBUG LINES FOR MOTION CORRECTION
+	get_parent().get_parent().display_line(transform.get_origin(), snapshot["transform"].get_origin(), debug_color)
+	# DEBUG LINES FOR MOTION CORRECTION
+
+	if "health" in snapshot:
 		var was_alive = $health.is_alive
-		$health.set_value(snapshot_to_set["health"])
+		$health.set_value(snapshot["health"])
 		if not was_alive and $health.is_alive:
 			resurrect_me()
-	
+
+	var correction_length = (snapshot["transform"].get_origin() - get_transform().get_origin()).length()
+	var tween_length = max(0., over_time_msec) / 1000.;
+	if "internal_force" in snapshot:
+		create_tween().tween_property(self, "internal_force", snapshot["internal_force"], tween_length)
+	if "velocity" in snapshot:
+		create_tween().tween_property(self, "velocity", snapshot["velocity"], tween_length)
+
 	# Add an afterimage of the character, and erase it shortafter
-	if CHARACTER_APPROX_SIZE < (snapshot["transform"].get_origin() - get_transform().get_origin()).length():
+	if temporal_correction_distance_threshold < correction_length:
+		create_tween().tween_property(self, "transform", snapshot["transform"], tween_length)
 		var clone = $skin.duplicate()
-		clone.transform = $skin.transform;
-		clone.material = clone.material.duplicate()
+		clone.set_material(clone.material.duplicate())
+		clone.set_transform($skin.get_transform())
 		clone.set_global_position(get_global_position())
 		get_parent().add_child(clone)
 		var tween = create_tween()
@@ -42,29 +47,9 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 			func(value): clone.material.set_shader_parameter("burn_percentage", value),
 			0.0, 1.0, 0.5
 		)
-		tween.finished.connect(func(): clone.call_deferred("queue_free"))
-	
-func _physics_process(delta: float) -> void:
-	if 0 < temporal_overwrite_time_msec:
-		var this_frame_msec = delta * 1000
-		var weight_in_interpolation = this_frame_msec / temporal_overwrite_time_msec
-		if temporal_overwrite_time_msec < this_frame_msec:
-			weight_in_interpolation = 1.
-		var interpolated_motion = BattleTimeline.lerp_motion( \
-			{"transform": transform, "velocity": velocity}, snapshot_to_set, \
-			clamp(weight_in_interpolation * weight_in_interpolation, 0., 1.) \
-		)
-		transform = interpolated_motion["transform"]
-		velocity = interpolated_motion["velocity"]
-		
-		if temporal_update_started:
-			if "internal_force" in snapshot_to_set:
-				$controller.internal_force = snapshot_to_set["internal_force"]
-			if "intent_force" in snapshot_to_set:
-				$controller.intent_force = snapshot_to_set["intent_force"]
-		temporal_overwrite_time_msec -= delta * 1000
-	else:
-		temporal_update_started = false
+		tween.finished.connect(func(): clone.queue_free())
+	$controller.start()
+
 
 func init_clone(predecessor):
 	predecessor.get_node("team").init_succesor($team)
@@ -128,10 +113,10 @@ func resurrect_me():
 	if has_node("ai_control"):
 		$ai_control.enabled = true
 
-var accept_inputs = false
+var accepts_inputs = false
 var control_enabled = false
-func accepts_input(yesno):
-	accept_inputs = yesno
+func accepts_user_input(yesno):
+	accepts_inputs = yesno
 
 func pause_control() -> void:
 	control_enabled = false
@@ -146,7 +131,7 @@ func resume_control() -> void:
 		$ai_control.resume()
 
 func _unhandled_input(inev: InputEvent) -> void:
-	if not accept_inputs:
+	if not accepts_inputs:
 		return;
 	var action = BattleInputMap.get_action(get_viewport(), get_global_position(), inev)
 	if(control_enabled):

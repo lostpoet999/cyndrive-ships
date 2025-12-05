@@ -44,7 +44,8 @@ func _process(_delta: float) -> void:
 				time_to_snapshot = abs(BattleTimeline.instance.time_since_msec(msec_records.keys().back()))
 			target.correct_temporal_state(corrective_snapshot, time_to_snapshot)
 	if BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.FORWARD \
-		and last_time_flow == BattleTimeline.TimeFlow.BACKWARD:
+		and last_time_flow == BattleTimeline.TimeFlow.BACKWARD \
+		and last_snapshot != null:
 			target.correct_temporal_state(last_snapshot[last_snapshot.keys()[0]], 0.001)
 	last_time_flow = BattleTimeline.instance.time_flow
 var last_triggered = 0. 
@@ -86,6 +87,5 @@ func _physics_process(_delta: float) -> void:
 	if target.has_node("health"):
 		current_snapshot["health"] = target.get_node("health").value()
 	if target.has_node("controller"):
-		current_snapshot["intent_force"] = target.get_node("controller").intent_force
 		current_snapshot["internal_force"] = target.get_node("controller").internal_force
 	msec_records[last_triggered] = current_snapshot

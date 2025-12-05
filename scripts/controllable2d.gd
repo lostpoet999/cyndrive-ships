@@ -19,6 +19,8 @@ Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
 @export_range(1, 100) var start_resistance = 10
 @export_range(1, 100) var stop_resistance = 5
 @export_range(10., 100.) var booster_strength = 100.
+@export_range(0., 1.) var momentum_dampener: float = 1.
+
 
 """
 From 0 to the top speed the curve the player changes speed is based on x^2 / @start_resistance.
@@ -98,7 +100,10 @@ func process_input_action(action: Dictionary) -> void:
 		internal_force = intent_direction * top_speed * booster_strength
 
 func _process(_delta):
-	var previous_intent = intent_force * 0.9
+	if not enabled or BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.BACKWARD:
+		return
+	
+	var previous_intent = intent_force * momentum_dampener
 	var current_intent = Vector2()
 	var x
 
@@ -123,14 +128,20 @@ func _process(_delta):
 		current_intent.y = decelerate_function(x - 1) * sign(previous_intent.y)
 	current_intent = current_intent.clamp(-Vector2(top_speed,top_speed), Vector2(top_speed,top_speed))
 
+	"""Apply the new speed"""
+	internal_force *= 0.99
+	internal_force += current_intent
 	intent_force = current_intent
-	if enabled:
-		"""Apply the new speed"""
-		internal_force *= 0.99
-		internal_force += intent_force
-		character.set_velocity(internal_force)
-		character.move_and_slide()
+	character.set_velocity(internal_force)
+	character.move_and_slide()
 
-		"""Apply angle based on speed"""
-		if 0.05 < intent_force.length():
-			character.set_rotation(intent_force.angle())
+	"""Apply angle based on speed"""
+	if 0.05 < intent_force.length():
+		character.set_rotation(intent_force.angle())
+
+#region temporal corrective functions
+
+func _set_internal_force(force: float) -> void:
+	internal_force = force
+
+#endregion
