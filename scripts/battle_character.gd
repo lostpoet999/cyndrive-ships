@@ -10,6 +10,7 @@ const CHARACTER_APPROX_SIZE: float = 100.
 
 var target_assist_original_size: float = 150.
 func _ready() -> void:
+	$skin.material = $skin.material.duplicate() # To have different colors for each ship
 	if target_assist_shape:
 		target_assist_original_size = target_assist_shape.shape.radius
 
@@ -28,6 +29,20 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 		$health.set_value(snapshot_to_set["health"])
 		if not was_alive and $health.is_alive:
 			resurrect_me()
+	
+	# Add an afterimage of the character, and erase it shortafter
+	if CHARACTER_APPROX_SIZE < (snapshot["transform"].get_origin() - get_transform().get_origin()).length():
+		var clone = $skin.duplicate()
+		clone.transform = $skin.transform;
+		clone.material = clone.material.duplicate()
+		clone.set_global_position(get_global_position())
+		get_parent().add_child(clone)
+		var tween = create_tween()
+		tween.tween_method(
+			func(value): clone.material.set_shader_parameter("burn_percentage", value),
+			0.0, 1.0, 0.5
+		)
+		tween.finished.connect(func(): clone.call_deferred("queue_free"))
 	
 func _physics_process(delta: float) -> void:
 	if 0 < temporal_overwrite_time_msec:
@@ -53,11 +68,11 @@ func _physics_process(delta: float) -> void:
 
 func init_clone(predecessor):
 	predecessor.get_node("team").init_succesor($team)
-	$skin.self_modulate = $team.color
+	$skin.material.set_shader_parameter("team_color", $team.color)
 
 func init_control_character():
 	$team.initialize(team_id, spawn_position, color)
-	$skin.self_modulate = $team.color
+	$skin.material.set_shader_parameter("team_color", $team.color)
 
 func is_alive():
 	return self.has_node("health") and $health.is_alive

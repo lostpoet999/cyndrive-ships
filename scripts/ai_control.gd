@@ -47,7 +47,7 @@ func _process(delta):
 	while tries < 50 and ("is_alive" not in random_target or !random_target.is_alive()):
 		random_target = combatants.get_children().pick_random()
 		tries += 1
-	if random_target.get_node("team").is_enemy(character.get_node("team")) \
+	if random_target.has_node("team") and random_target.get_node("team").is_enemy(character.get_node("team")) \
 		and ( \
 			chosen_target == null or \
 			((random_target.global_position + character.global_position).length() \

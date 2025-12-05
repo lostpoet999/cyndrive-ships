@@ -1,7 +1,8 @@
-[gd_scene load_steps=10 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=16 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
+[ext_resource type="Shader" path="res://scripts/implode.gdshader" id="3_0dpix"]
 [ext_resource type="Texture2D" uid="uid://cm6fobaf78bk1" path="res://textures/battle_ship.png" id="3_a5ia6"]
 [ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/team.gd" id="3_j5io8"]
 [ext_resource type="Script" uid="uid://biil32ytxamuc" path="res://scripts/laser_beam_ray.gd" id="4_2t4uj"]
@@ -10,8 +11,39 @@
 [ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="8_pt8yu"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
-radius = 47.99999
-height = 102.00004
+radius = 15.0
+height = 60.0
+
+[sub_resource type="Curve" id="Curve_0dpix"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.44708997, 0.1048305), 0.44892073, 0.44892073, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_0dpix"]
+curve = SubResource("Curve_0dpix")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_0dpix"]
+noise_type = 5
+frequency = 0.0188
+fractal_type = 2
+fractal_octaves = 2
+fractal_lacunarity = 2.525
+fractal_gain = 2.0
+domain_warp_type = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_2hyy3"]
+noise = SubResource("FastNoiseLite_0dpix")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0dpix"]
+shader = ExtResource("3_0dpix")
+shader_parameter/noise = SubResource("NoiseTexture2D_2hyy3")
+shader_parameter/burn_color = Color(1, 1, 0, 1)
+shader_parameter/team_color = Color(0.48178947, 0.48178947, 0.48178947, 1)
+shader_parameter/burn_percentage = 0.0
+shader_parameter/burn_curve = SubResource("CurveTexture_0dpix")
+shader_parameter/burn_threshold = 1.0
+shader_parameter/burn_flame_supression = 0.50000002375
+shader_parameter/pixel_scale = 2.0000000475
+shader_parameter/color_aberration = 0.150000007125
 
 [node name="character" type="CharacterBody2D"]
 script = ExtResource("1_gqnfm")
@@ -28,6 +60,7 @@ stop_resistance = 20
 booster_strength = 50.0
 
 [node name="skin" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_0dpix")
 position = Vector2(1, -1.9073486e-06)
 rotation = 1.5708
 scale = Vector2(0.2, 0.2)
@@ -50,6 +83,7 @@ default_color = Color(0.878431, 0, 0, 1)
 script = ExtResource("6_pscbx")
 
 [node name="debug_label" type="Label" parent="."]
+visible = false
 offset_left = -15.0
 offset_top = -54.0
 offset_right = 156.0
