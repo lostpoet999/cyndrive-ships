@@ -28,10 +28,11 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 	# DEBUG LINES FOR MOTION CORRECTION
 
 	if "health" in snapshot:
-		var was_alive = $health.is_alive
+		was_alive = $health.is_alive
 		$health.set_value(snapshot["health"])
 		if not was_alive and $health.is_alive:
 			resurrect_me()
+			was_alive = $health.is_alive
 
 	var correction_length = (snapshot["transform"].get_origin() - get_transform().get_origin()).length()
 	var tween_length = max(0., over_time_msec) / 1000.;
@@ -58,6 +59,7 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 
 
 func init_clone(predecessor: BattleCharacter) -> void:
+	ship_explosion = null
 	team_id = predecessor.team_id
 	spawn_transform = predecessor.spawn_transform
 	predecessor.spawn_transform = predecessor.transform
@@ -69,6 +71,9 @@ func is_alive() -> bool:
 func set_highlight(yesno: bool) -> void:
 	$target_arrow.set_visible(yesno)
 
+@onready var was_alive = is_alive()
+var ship_explosion : ShipExplosion
+var explosion_template = preload("res://scenes/effects/explosion-firey.tscn")
 var zoom_value = 0.4
 func _process(_delta):
 	if has_node("cam"):
@@ -80,6 +85,19 @@ func _process(_delta):
 			target_assist_shape.shape.radius = target_assist_original_size * (0.5 / zoom_value)
 	if !is_alive():
 		unalive_me()
+		if was_alive:
+			#erase a previous explosion if there was any
+			if ship_explosion == null:
+				ship_explosion = explosion_template.instantiate().duplicate()
+			ship_explosion.reinit()
+			get_tree().get_root().add_child(ship_explosion)
+			ship_explosion.set_global_position(get_global_position())
+			was_alive = false
+	
+	# Erase explosion if alive
+	if is_alive() and ship_explosion != null:
+		ship_explosion.queue_free()
+		ship_explosion = null
 
 func accept_damage(strength):
 	$health.accept_damage(strength)
@@ -98,6 +116,7 @@ func respawn():
 	set_collision_layer_value(1, true)
 	set_visible(true)
 	$health.respawn()
+	was_alive = true
 	$controller.stop()
 	$controller.start()
 	if has_node("temporal_recorder"):
