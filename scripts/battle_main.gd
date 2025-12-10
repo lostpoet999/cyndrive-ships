@@ -2,17 +2,11 @@ extends Node2D
 
 @onready var character_template = preload("res://scenes/character.tscn")
 
-var sonar_visible = false
-var sonar_speed = 0.
-var sonar_slow_speed = 0.
 var init_countdown = 2.
 
 func _ready():
 	$combatants/character.accepts_user_input(true)
 	$combatants/character/controller.stop()
-	sonar_speed = $sonar_sensor.rotation_speed
-	sonar_slow_speed = $sonar_sensor.rotation_speed / 4.
-	
 	for combatant in $combatants.get_children():
 		combatant.move_to_spawn_position()
 		$timeline.connect("round_reset", combatant.respawn)
@@ -46,10 +40,11 @@ func _process(delta):
 	if 0 < init_countdown:
 		init_countdown = max(init_countdown - delta, 0)
 		$GUI/score.set_text("%0.3f" % init_countdown)
-		if 0 >= init_countdown:
+		if init_countdown <= 0:
 			for combatant in $combatants.get_children():
 				combatant.resume_control()
 			$timeline.reset()
+			$GUI/sonar_display.set_display_visibility(false)
 		return
 	
 	# Team size label update
@@ -61,10 +56,9 @@ func _process(delta):
 			counts[c.get_node("team").team_id] += 1
 	$GUI/score.set_text(str(counts[1], " vs ", counts[2]))
 	$target_assist.set_position(get_global_mouse_position())
-	$GUI/sonar_display.set_display_visibility(sonar_visible)
-	if $sonar_sensor.direct_control:
+	if $combatants/character/sonar_sensor.direct_control:
 		var direction = (get_global_mouse_position() - $combatants/character.get_global_position()).normalized()
-		$sonar_sensor.set_manual_rotation(direction.angle())
+		$combatants/character/sonar_sensor.set_manual_rotation(direction.angle())
 	
 	# Handling Timeline reverse
 	if reverse_being_held:
@@ -105,7 +99,7 @@ func create_new_puppet(predecessor):
 	$combatants.add_child(puppet)
 	predecessor.get_node("temporal_recorder").start_recording()
 
-func _unhandled_input(event):
+func _unhandled_input(event: InputEvent) -> void:
 	var just_pressed = event.is_pressed() and not event.is_echo()
 
 	if event.is_action_pressed("replay") and just_pressed:
@@ -128,24 +122,11 @@ func _unhandled_input(event):
 		rewind_over_tween.tween_callback(func () : $GUI/rewind_effects.visible = false)
 		rewind_over_tween.chain()
 	reverse_initiated = reverse_initiated or reverse_being_held
-
-	if event.is_action_pressed("radar") and just_pressed:
-		$sonar_sensor.rotation_speed = sonar_speed
-		sonar_visible = true
-	elif event.is_action_pressed("radar-slow") and just_pressed:
-		$sonar_sensor.rotation_speed = sonar_slow_speed
-		sonar_visible = true
-		
-	elif event.is_action_pressed("radar-control"):
-		$sonar_sensor.direct_control = true
-		sonar_visible = true
-
-	if event.is_action_released("radar"):
-		sonar_visible = false	
-
-	if event.is_action_released("radar-slow"):
-		sonar_visible = false
+	
+	if event.is_action_pressed("radar-control") and just_pressed:
+		$combatants/character/sonar_sensor.direct_control = true
+		$GUI/sonar_display.set_display_visibility(true)
 
 	if event.is_action_released("radar-control"):
-		sonar_visible = false
-		$sonar_sensor.direct_control = false
+		$GUI/sonar_display.set_display_visibility(false)
+		$combatants/character/sonar_sensor.direct_control = false
