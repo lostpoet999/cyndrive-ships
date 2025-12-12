@@ -1,21 +1,21 @@
 extends Node2D
 
-
-@export var max_distance_from_target = 10.
-@export var laser_aim = 1.815
-@export var laser_haste = 0.03
-@export var difficuilty_laser_frequency_sec = 1.3
-@export var difficuilty_aim_response = 0.5
-@export var attack_range = 2000.
-@export var goldfish_memory_sec = 1.
+@export var runs_per_second: float = 5.
+@export var max_distance_from_target: float = 10.
+@export var laser_aim: float = 0.85
+@export var laser_haste: float = 0.615
+@export var difficuilty_laser_frequency_sec: float = 0.8
+@export var attack_range: float = 2000.
+@export var goldfish_memory_sec: float = 1.
 
 @onready var character: BattleCharacter = get_parent()
+var time_until_script_execution = 1. / runs_per_second
 var chosen_target: CharacterBody2D
 var laser_direction: Vector2
-var enabled = true
-var time_since_laser = 0.
-var distance_to_target = 0.
-var time_until_target_drop = goldfish_memory_sec
+var enabled: bool = true
+var time_since_laser: float = 0.
+var distance_to_target: float = 0.
+var time_until_target_drop: float = goldfish_memory_sec
 
 func stop() -> void:
 	enabled = false
@@ -27,16 +27,18 @@ func resume() -> void:
 	enabled = true
 
 func _process(delta):
-	if not enabled:
+	time_until_script_execution -= delta
+	time_since_laser += delta
+
+	if not enabled or time_until_script_execution >= 0:
 		return
-		
+	time_until_script_execution = 1. / runs_per_second
 	var action = Dictionary()
 	action["intent"] = Vector2()
 	action["cursor"] = Vector2()
 	action["pewpew"] = false
 	action["boost"] = false
 
-	time_since_laser += delta
 
 	var combatants = character.get_parent()
 	var to_target : Vector2
@@ -97,12 +99,7 @@ func _process(delta):
 		max_distance_from_target / (distance_to_target)
 	)
 	
-	if time_since_laser > difficuilty_aim_response:
-		# Due to PD convergence, it looks like the enemy targeting system is "narrowing down" where to shoot
-		# which is actually a flickering directions 
-		var new_direction = lerp(laser_direction, to_target, laser_aim + max(0.05, 0.6 - time_since_laser))
-		var old_direction = laser_direction
-		laser_direction = new_direction + (new_direction - old_direction) * laser_haste
+	laser_direction = lerp(laser_direction, to_target, laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
 
 	# See if there's anything in the way to the target
 	var raycast_query = PhysicsRayQueryParameters2D.create( \
