@@ -1,13 +1,13 @@
 class_name BattleCharacter extends CharacterBody2D
 
-const CHARACTER_APPROX_SIZE: float = 100.
+var approx_size: float = 100.
 
 @export var team_id = 0
 @export var spawn_position = Vector2()
 @export var color = Color()
 @export var starting_health = 10.
 @export var target_assist_shape: CollisionShape2D
-@export var temporal_correction_distance_threshold: float = CHARACTER_APPROX_SIZE / 2.
+@export var temporal_correction_distance_threshold: float = approx_size / 2.
 @export_range(0., 200.) var mass: float = 10.
 
 @onready var spawn_transform = get_transform()
@@ -56,7 +56,6 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 			0.0, 1.0, 0.5
 		)
 		tween.finished.connect(func(): clone.queue_free())
-	$controller.start()
 
 
 func init_clone(predecessor: BattleCharacter) -> void:
@@ -110,7 +109,9 @@ func _process(_delta):
 			get_tree().get_root().add_child(ship_explosion)
 			ship_explosion.set_global_position(get_global_position())
 			was_alive = false
-	
+			was_in_battle = false
+			explosion_shake($cam, 100., 0.8)
+
 	# Erase explosion if alive
 	if is_alive() and ship_explosion != null:
 		ship_explosion.queue_free()
@@ -135,7 +136,7 @@ func respawn():
 	$health.respawn()
 	was_alive = true
 	$controller.stop()
-	$controller.start()
+	resume_control()
 	if has_node("temporal_recorder"):
 		$temporal_recorder.start_recording()
 	if has_node("replayer"):
@@ -187,7 +188,7 @@ func _unhandled_input(inev: InputEvent) -> void:
 		if action["boost"]:
 			var camera_direction = $controller.intent_direction * -1
 			var boost_tween = create_tween()
-			boost_tween.tween_property($cam, "offset", camera_direction * CHARACTER_APPROX_SIZE * 2., 0.2)
+			boost_tween.tween_property($cam, "offset", camera_direction * approx_size * 2., 0.1)
 			boost_tween.tween_property($cam, "offset", Vector2(), 0.5)
 			boost_tween.chain()
 	process_input_action(action)

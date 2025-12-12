@@ -62,8 +62,9 @@ func _process(delta: float) -> void:
 		and (delta_to_current_action < 0 or delta_to_current_action < (cached_frame_duration_usec / 2.)):
 			if 0 < delta_to_current_action: # await the next opportunity to apply the input
 				# but only wait for the 90% of the delta to account for delays in this function call (estimation)
-				get_tree().create_timer(delta_to_current_action * 900000.).connect("timeout", func():
-					ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
+				var key_to_apply = current_action_key
+				get_tree().create_timer(delta_to_current_action / 900000.).connect("timeout", func():
+					ship.process_input_action(usec_records[usec_records.keys()[key_to_apply]])
 				)
 			else:
 				ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
