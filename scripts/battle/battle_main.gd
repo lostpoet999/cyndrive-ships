@@ -84,7 +84,7 @@ func create_new_puppet(predecessor):
 	var puppet = character_template.instantiate();
 	var replayer = Node2D.new()
 	puppet.init_clone(predecessor)
-	replayer.set_script(preload("res://scripts/battle/battle_input_map.gd"))
+	replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
 	replayer.name = "replayer"
 	replayer.usec_records = records["actions"]
 	replayer.msec_records = records["motion"]

@@ -217,11 +217,9 @@ script = ExtResource("10_fpf3k")
 
 [node name="laser_energy" parent="GUI/status_padding/status_container" instance=ExtResource("10_saiin")]
 layout_mode = 2
-script = null
 
 [node name="boost_energy" parent="GUI/status_padding/status_container" instance=ExtResource("10_saiin")]
 layout_mode = 2
-script = null
 
 [node name="target_assist" type="Area2D" parent="."]
 collision_layer = 3
