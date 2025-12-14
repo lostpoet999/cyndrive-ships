@@ -1,28 +1,28 @@
 [gd_scene load_steps=34 format=3 uid="uid://b3trh6sc7bkeq"]
 
-[ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle_main.gd" id="1_j7yva"]
-[ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle_timeline.gd" id="2_ekamt"]
-[ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/temporal_recorder.gd" id="2_kjq4e"]
+[ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
+[ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle/battle_timeline.gd" id="2_ekamt"]
+[ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/battle/temporal_recorder.gd" id="2_kjq4e"]
 [ext_resource type="Shader" uid="uid://dvimhyltktrda" path="res://shaders/sonar.gdshader" id="2_qdfj8"]
 [ext_resource type="PackedScene" uid="uid://bxvkgl6pp7mn0" path="res://scenes/character.tscn" id="2_sm623"]
 [ext_resource type="Texture2D" uid="uid://fh8yoymipqg2" path="res://textures/stars-seamless.png" id="3_61i1y"]
-[ext_resource type="Script" uid="uid://bib83etyoggcu" path="res://scripts/sonar_display.gd" id="3_m8v8v"]
-[ext_resource type="Script" uid="uid://82hb1gbig1h3" path="res://scripts/sonar_sensor.gd" id="4_3fx1x"]
-[ext_resource type="Script" uid="uid://dpky47433cafo" path="res://scripts/ai_control.gd" id="5_3g8p0"]
+[ext_resource type="Script" uid="uid://bib83etyoggcu" path="res://scripts/effects/sonar_display.gd" id="3_m8v8v"]
+[ext_resource type="Script" uid="uid://82hb1gbig1h3" path="res://scripts/equipment/sonar_sensor.gd" id="4_3fx1x"]
+[ext_resource type="Script" uid="uid://dpky47433cafo" path="res://scripts/equipment/ai_control.gd" id="5_3g8p0"]
 [ext_resource type="Texture2D" uid="uid://bs1tb484wprlw" path="res://textures/asteroid.png" id="5_7e0bu"]
 [ext_resource type="Texture2D" uid="uid://b3l70a8ih0ytb" path="res://textures/stars_larger.png" id="5_vceff"]
-[ext_resource type="Script" uid="uid://dusbajbexl3be" path="res://scripts/target_assist.gd" id="6_cj32i"]
+[ext_resource type="Script" uid="uid://dusbajbexl3be" path="res://scripts/equipment/target_assist.gd" id="6_cj32i"]
 [ext_resource type="Shader" uid="uid://rsuxn1jhme0d" path="res://shaders/rewind.gdshader" id="9_61i1y"]
 [ext_resource type="Texture2D" uid="uid://4vj0r5txy10y" path="res://textures/BASE.png" id="10_66ngm"]
-[ext_resource type="Script" uid="uid://ba0vnf5082iwk" path="res://scripts/status_container.gd" id="10_fpf3k"]
-[ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/energy_bar_control.tscn" id="10_saiin"]
-[ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/team.gd" id="11_hwhwn"]
+[ext_resource type="Script" path="res://scripts/status_container.gd" id="10_fpf3k"]
+[ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/effects/energy_bar_control.tscn" id="10_saiin"]
+[ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/equipment/team.gd" id="11_hwhwn"]
 [ext_resource type="Texture2D" uid="uid://xwsqnqwtnq0y" path="res://textures/stars_medium.png" id="13_6ni85"]
 [ext_resource type="Texture2D" uid="uid://c17dww6b56361" path="res://textures/stars_large.png" id="14_vceff"]
 [ext_resource type="Script" uid="uid://bg8pweqwdny4o" path="res://scripts/battle_debris.gd" id="15_p0caf"]
-[ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/health.gd" id="18_h4dll"]
+[ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="18_h4dll"]
 [ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="19_p0caf"]
-[ext_resource type="Script" uid="uid://cdrsm7mlhnmnm" path="res://scripts/energy_systems.gd" id="21_dd63g"]
+[ext_resource type="Script" uid="uid://cdrsm7mlhnmnm" path="res://scripts/equipment/energy_systems.gd" id="21_dd63g"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gqr64"]
 font_size = 100
@@ -217,11 +217,11 @@ script = ExtResource("10_fpf3k")
 
 [node name="laser_energy" parent="GUI/status_padding/status_container" instance=ExtResource("10_saiin")]
 layout_mode = 2
-label_text = "LASER"
+script = null
 
 [node name="boost_energy" parent="GUI/status_padding/status_container" instance=ExtResource("10_saiin")]
 layout_mode = 2
-label_text = "BOOST"
+script = null
 
 [node name="target_assist" type="Area2D" parent="."]
 collision_layer = 3
@@ -375,7 +375,6 @@ spawn_position = null
 color = Color(1, 1, 1, 1)
 starting_health = null
 target_assist_shape = NodePath("../../target_assist/collsion_shape")
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="cam" type="Camera2D" parent="combatants/character"]
@@ -401,7 +400,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy"]
@@ -419,7 +417,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy2"]
@@ -437,7 +434,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy3"]
@@ -455,7 +451,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy4"]
@@ -473,7 +468,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy5"]
@@ -491,7 +485,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy6"]
@@ -509,7 +502,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy7"]
@@ -527,7 +519,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy8"]
@@ -545,7 +536,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy9"]
@@ -563,7 +553,6 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 1)
 starting_health = null
-temporal_correction_distance_threshold = null
 mass = null
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy10"]

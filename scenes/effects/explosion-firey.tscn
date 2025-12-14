@@ -1,6 +1,6 @@
 [gd_scene load_steps=15 format=3 uid="uid://btx22762p6sdy"]
 
-[ext_resource type="Script" uid="uid://dtor5hqwh1v5n" path="res://scenes/effects/rewindableExplosion.gd" id="1_1d0c4"]
+[ext_resource type="Script" uid="uid://dtor5hqwh1v5n" path="res://scripts/effects/rewindableExplosion.gd" id="1_1d0c4"]
 [ext_resource type="Texture2D" uid="uid://c4mgx0clbrkr2" path="res://textures/explosions/explode1.png" id="1_db0jd"]
 [ext_resource type="Texture2D" uid="uid://c12v8v0oncpxk" path="res://textures/explosions/explode2.png" id="2_1d0c4"]
 [ext_resource type="Texture2D" uid="uid://chenktkgyl7r3" path="res://textures/explosions/explode3.png" id="3_ynadh"]

@@ -1,6 +1,6 @@
 extends ColorRect
 
-const SONAR_BLIP_SCENE = preload("res://scenes/sonar_blip.tscn")
+const SONAR_BLIP_SCENE = preload("res://scenes/effects/sonar_blip.tscn")
 
 @export_range(0., 1.,) var sonar_width: float = 0.0075
 @export_range(-1., 5.,) var sonar_edge_open: float = -0.5
