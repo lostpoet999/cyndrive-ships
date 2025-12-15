@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=30 format=3 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle/battle_timeline.gd" id="2_ekamt"]
@@ -13,15 +13,12 @@
 [ext_resource type="Texture2D" uid="uid://b3l70a8ih0ytb" path="res://textures/stars_larger.png" id="5_vceff"]
 [ext_resource type="Script" uid="uid://dusbajbexl3be" path="res://scripts/equipment/target_assist.gd" id="6_cj32i"]
 [ext_resource type="Shader" uid="uid://rsuxn1jhme0d" path="res://shaders/rewind.gdshader" id="9_61i1y"]
-[ext_resource type="Texture2D" uid="uid://4vj0r5txy10y" path="res://textures/BASE.png" id="10_66ngm"]
 [ext_resource type="Script" path="res://scripts/status_container.gd" id="10_fpf3k"]
 [ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/effects/energy_bar_control.tscn" id="10_saiin"]
-[ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/equipment/team.gd" id="11_hwhwn"]
 [ext_resource type="Texture2D" uid="uid://xwsqnqwtnq0y" path="res://textures/stars_medium.png" id="13_6ni85"]
 [ext_resource type="Texture2D" uid="uid://c17dww6b56361" path="res://textures/stars_large.png" id="14_vceff"]
 [ext_resource type="Script" uid="uid://bg8pweqwdny4o" path="res://scripts/battle_debris.gd" id="15_p0caf"]
-[ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="18_h4dll"]
-[ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="19_p0caf"]
+[ext_resource type="PackedScene" uid="uid://b2el5b6ucyivj" path="res://scenes/player_carrier.tscn" id="16_61i1y"]
 [ext_resource type="Script" uid="uid://cdrsm7mlhnmnm" path="res://scripts/equipment/energy_systems.gd" id="21_dd63g"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_gqr64"]
@@ -69,9 +66,6 @@ shader_parameter/color_2 = Color(0.17234308, 0.00012254089, 0.5416377, 1)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_58h07"]
 radius = 150.0
-
-[sub_resource type="CircleShape2D" id="CircleShape2D_o607b"]
-radius = 249.12848
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_jscwi"]
 radius = 71.78877
@@ -222,42 +216,13 @@ layout_mode = 2
 layout_mode = 2
 
 [node name="target_assist" type="Area2D" parent="."]
-collision_layer = 3
-collision_mask = 3
+collision_layer = 2
 script = ExtResource("6_cj32i")
 
 [node name="collsion_shape" type="CollisionShape2D" parent="target_assist"]
 shape = SubResource("CircleShape2D_58h07")
 
 [node name="debris" type="Node" parent="."]
-
-[node name="enemy_carrier_ship" type="RigidBody2D" parent="debris"]
-position = Vector2(1477, -387)
-collision_mask = 3
-mass = 100.0
-script = ExtResource("15_p0caf")
-
-[node name="Sprite2D" type="Sprite2D" parent="debris/enemy_carrier_ship"]
-texture = ExtResource("10_66ngm")
-
-[node name="team" type="Node2D" parent="debris/enemy_carrier_ship"]
-script = ExtResource("11_hwhwn")
-
-[node name="CollisionShape2D" type="CollisionShape2D" parent="debris/enemy_carrier_ship"]
-position = Vector2(7, -6)
-shape = SubResource("CircleShape2D_o607b")
-
-[node name="temporal_recorder" type="Node2D" parent="debris/enemy_carrier_ship"]
-script = ExtResource("2_kjq4e")
-
-[node name="health" type="Node2D" parent="debris/enemy_carrier_ship"]
-script = ExtResource("18_h4dll")
-
-[node name="target_arrow" type="Sprite2D" parent="debris/enemy_carrier_ship"]
-visible = false
-position = Vector2(4, 0)
-scale = Vector2(2.96875, 2.96875)
-texture = ExtResource("19_p0caf")
 
 [node name="meteor" type="RigidBody2D" parent="debris"]
 position = Vector2(435, -218)
@@ -366,14 +331,16 @@ script = ExtResource("2_kjq4e")
 
 [node name="combatants" type="Node" parent="."]
 
-[node name="character" parent="combatants" node_paths=PackedStringArray("target_assist_shape") instance=ExtResource("2_sm623")]
-position = Vector2(1563.9999, -784.99994)
+[node name="player_carrier" parent="combatants" instance=ExtResource("16_61i1y")]
+position = Vector2(1690, -2699)
 team_id = 1
-spawn_position = null
-color = Color(1, 1, 1, 1)
-starting_health = null
+
+[node name="character" parent="combatants" node_paths=PackedStringArray("target_assist_shape") instance=ExtResource("2_sm623")]
+position = Vector2(1581, -2512)
+rotation = 1.5707964
+team_id = 1
+color = Color(0, 0, 0, 0)
 target_assist_shape = NodePath("../../target_assist/collsion_shape")
-mass = null
 
 [node name="cam" type="Camera2D" parent="combatants/character"]
 zoom = Vector2(0.5, 0.5)
@@ -396,9 +363,7 @@ position = Vector2(1000, 200)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy"]
 rotation = 3.14159
@@ -413,9 +378,7 @@ position = Vector2(1205, 200)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy2"]
 rotation = 3.14159
@@ -430,9 +393,7 @@ position = Vector2(1382, 200)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy3"]
 rotation = 3.14159
@@ -447,9 +408,7 @@ position = Vector2(1599, 200)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy4"]
 rotation = 3.14159
@@ -464,9 +423,7 @@ position = Vector2(1796, 200)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy5"]
 rotation = 3.14159
@@ -481,9 +438,7 @@ position = Vector2(2007, 200)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy6"]
 rotation = 3.14159
@@ -498,9 +453,7 @@ position = Vector2(2213, 214)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy7"]
 rotation = 3.14159
@@ -515,9 +468,7 @@ position = Vector2(2398, 211)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy8"]
 rotation = 3.14159
@@ -532,9 +483,7 @@ position = Vector2(2572, 220)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy9"]
 rotation = 3.14159
@@ -549,9 +498,7 @@ position = Vector2(2767, 235)
 rotation = 3.14159
 team_id = 2
 spawn_position = Vector2(1000, 200)
-color = Color(1, 0, 0, 1)
-starting_health = null
-mass = null
+color = Color(1, 0, 0, 0.5803922)
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy10"]
 rotation = 3.14159

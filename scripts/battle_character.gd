@@ -1,10 +1,9 @@
 class_name BattleCharacter extends CharacterBody2D
 
-var approx_size: float = 100.
-
+@export var approx_size: float = 100.
 @export var team_id = 0
 @export var spawn_position = Vector2()
-@export var color = Color()
+@export var color = Color.from_rgba8(0,0,0,0)
 @export var starting_health = 10.
 @export var target_assist_shape: CollisionShape2D
 @export var temporal_correction_distance_threshold: float = approx_size / 2.

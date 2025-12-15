@@ -29,7 +29,7 @@ void fragment() {
 			texture(TEXTURE, UV + vec2(cos(blue_abberation_angle), sin(blue_abberation_angle)) * aberration).a
 		)
 	);
-	skin_color = vec4(mix(skin_color, team_color, 0.45).rgb, skin_color.a);
+	skin_color = vec4(mix(skin_color, team_color, team_color.a).rgb, skin_color.a);
 	float corrected_burn_prec = texture(burn_curve, vec2(burn_percentage, 0.)).r;
 	float skin_alpha = clamp(pow(texture(noise, large_pixel_uv).r, mix(0.001, 25., corrected_burn_prec)), 0., 1.);
 	float skin_alpha_larger = clamp(pow(texture(noise, large_pixel_uv).r, mix(0.001, 10., corrected_burn_prec)), 0., 1.);

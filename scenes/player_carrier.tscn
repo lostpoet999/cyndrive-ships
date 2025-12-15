@@ -1,0 +1,109 @@
+[gd_scene load_steps=21 format=3 uid="uid://b2el5b6ucyivj"]
+
+[ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_ny2j2"]
+[ext_resource type="Texture2D" uid="uid://o42ke22r8jvm" path="res://textures/player_carrier_bottom.png" id="2_oieim"]
+[ext_resource type="Shader" uid="uid://c66rqecsnsqsu" path="res://shaders/implode.gdshader" id="2_xatsn"]
+[ext_resource type="Texture2D" uid="uid://c17117io8ilgk" path="res://textures/player_carrier_top.png" id="3_xatsn"]
+[ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/equipment/team.gd" id="4_8jh2m"]
+[ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/battle/temporal_recorder.gd" id="5_sti4k"]
+[ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="6_i8lxl"]
+[ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="7_d02ko"]
+[ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="9_xatsn"]
+[ext_resource type="AudioStream" uid="uid://x01j2fo2me0d" path="res://audio/engine_thruster.wav" id="10_5fyrk"]
+[ext_resource type="AudioStream" uid="uid://rps6evxmvrsb" path="res://audio/explosion_01.wav" id="11_a3wjc"]
+[ext_resource type="AudioStream" uid="uid://dajttw71kitgt" path="res://audio/explosion_001.wav" id="12_55my7"]
+[ext_resource type="AudioStream" uid="uid://besa8dwtnwqwy" path="res://audio/explosion_002.wav" id="13_14t5u"]
+[ext_resource type="AudioStream" uid="uid://bcnnssuecafi" path="res://audio/explosion_003.wav" id="14_em532"]
+
+[sub_resource type="Curve" id="Curve_8jh2m"]
+_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.44708997, 0.1048305), 0.44892073, 0.44892073, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
+point_count = 3
+
+[sub_resource type="CurveTexture" id="CurveTexture_0dpix"]
+curve = SubResource("Curve_8jh2m")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_sti4k"]
+noise_type = 5
+frequency = 0.0188
+fractal_type = 2
+fractal_octaves = 2
+fractal_lacunarity = 2.525
+fractal_gain = 2.0
+domain_warp_type = 1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_2hyy3"]
+noise = SubResource("FastNoiseLite_sti4k")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_i8lxl"]
+shader = ExtResource("2_xatsn")
+shader_parameter/noise = SubResource("NoiseTexture2D_2hyy3")
+shader_parameter/burn_color = Color(1, 1, 0, 1)
+shader_parameter/team_color = Color(0.48235294, 0.48235294, 0.48235294, 0)
+shader_parameter/burn_percentage = 0.0
+shader_parameter/burn_curve = SubResource("CurveTexture_0dpix")
+shader_parameter/burn_threshold = 1.0
+shader_parameter/burn_flame_supression = 0.50000002375
+shader_parameter/pixel_scale = 2.0000000475
+shader_parameter/color_aberration = 0.150000007125
+
+[sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_d16w7"]
+streams_count = 4
+stream_0/stream = ExtResource("11_a3wjc")
+stream_1/stream = ExtResource("12_55my7")
+stream_2/stream = ExtResource("13_14t5u")
+stream_3/stream = ExtResource("14_em532")
+
+[node name="player_carrier" type="CharacterBody2D"]
+script = ExtResource("1_ny2j2")
+approx_size = 700.0
+color = Color(1, 1, 1, 0)
+mass = 100.0
+
+[node name="skin_bottom" type="Sprite2D" parent="."]
+material = SubResource("ShaderMaterial_i8lxl")
+texture = ExtResource("2_oieim")
+region_rect = Rect2(0, 0, 6000, 3000)
+
+[node name="skin" type="Sprite2D" parent="."]
+z_index = 100
+material = SubResource("ShaderMaterial_i8lxl")
+texture = ExtResource("3_xatsn")
+region_rect = Rect2(0, 0, 6000, 3000)
+
+[node name="front_collision" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(38, 296, 40, -292, 255, -202, 372, 2, 264, 195)
+
+[node name="rear_collision" type="CollisionPolygon2D" parent="."]
+polygon = PackedVector2Array(-375, -146, -240, -254, -237, 257, -371, 142)
+
+[node name="team" type="Node2D" parent="."]
+script = ExtResource("4_8jh2m")
+
+[node name="temporal_recorder" type="Node2D" parent="."]
+script = ExtResource("5_sti4k")
+
+[node name="health" type="Node2D" parent="."]
+script = ExtResource("6_i8lxl")
+starting_health = 100.0
+
+[node name="target_arrow" type="Sprite2D" parent="."]
+visible = false
+position = Vector2(4, 0)
+scale = Vector2(2.96875, 2.96875)
+texture = ExtResource("7_d02ko")
+
+[node name="controller" type="Node2D" parent="."]
+script = ExtResource("9_xatsn")
+top_speed = 20.0
+start_resistance = 2
+stop_resistance = 100
+booster_strength = 50.0
+momentum_dampener = 0.85
+
+[node name="thruster_sound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("10_5fyrk")
+pitch_scale = 0.5
+autoplay = true
+
+[node name="explosion_sound" type="AudioStreamPlayer2D" parent="."]
+stream = SubResource("AudioStreamRandomizer_d16w7")

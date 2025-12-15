@@ -26,7 +26,7 @@ func stop() -> void:
 func resume() -> void:
 	enabled = true
 
-func _process(delta):
+func _physics_process(delta: float) -> void:
 	time_until_script_execution -= delta
 	time_since_laser += delta
 
@@ -49,11 +49,9 @@ func _process(delta):
 		to_target = ( chosen_target.get_global_position() - character.get_global_position() )
 		distance_to_target = to_target.length()
 		to_target = to_target.normalized()
-		var target_range_raycast_query = PhysicsRayQueryParameters2D.create( \
-			character.get_global_position(), \
-			character.get_global_position() + to_target * attack_range \
-		)
-		var target_range_raycast_result = space_state.intersect_ray(target_range_raycast_query)
+		var target_range_raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
+			character.get_global_position(), character.get_global_position() + to_target * attack_range
+		))
 		if not target_range_raycast_result.has("collider") or chosen_target != target_range_raycast_result.collider:
 			time_until_target_drop -= delta
 		if time_until_target_drop <= 0.:
@@ -64,8 +62,9 @@ func _process(delta):
 		chosen_target = null
 
 	# decide potential new target
-	var random_target = combatants.get_children().pick_random()
 	var tries = 0
+	var raycast_result
+	var random_target = combatants.get_children().pick_random()
 	while tries < 5 and ("in_battle" not in random_target or !random_target.in_battle()):
 		random_target = combatants.get_children().pick_random()
 		tries += 1
@@ -73,19 +72,20 @@ func _process(delta):
 		var vector_to_target = random_target.global_position - character.global_position
 		var candidate_distance = vector_to_target.length()
 		if (chosen_target == null or candidate_distance < distance_to_target or candidate_distance < attack_range):
-			var random_target_raycast_query = PhysicsRayQueryParameters2D.create( \
-				character.get_global_position(), \
-				character.get_global_position() + vector_to_target.normalized() * attack_range \
-			)
-			var random_target_raycast_result = space_state.intersect_ray(random_target_raycast_query)
-			if random_target_raycast_result.has("collider") and random_target == random_target_raycast_result.collider:
+			raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
+				character.get_global_position(),
+				character.get_global_position() + vector_to_target.normalized() * attack_range
+			))
+			if raycast_result.has("collider") and random_target == raycast_result.collider:
 				chosen_target = random_target
 				distance_to_target = vector_to_target.length()
 				time_until_target_drop = goldfish_memory_sec
+			else: # In case the random target is not in line of sight, do not cache the raycast results
+				raycast_result = null
 
 	# Go to spawn position if no target
 	var target_is_alive = false
-	if chosen_target != null and "is_alive" in chosen_target and chosen_target.is_alive():
+	if chosen_target != null and "in_battle" in chosen_target and chosen_target.in_battle():
 		target_is_alive = true
 		to_target = ( chosen_target.get_global_position() - character.get_global_position() )
 		distance_to_target = to_target.length()
@@ -102,14 +102,24 @@ func _process(delta):
 	laser_direction = lerp(laser_direction, to_target, laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
 
 	# See if there's anything in the way to the target
-	var raycast_query = PhysicsRayQueryParameters2D.create( \
-		character.get_global_position(), \
-		character.get_global_position() + laser_direction * 50000000. \
-	)
-	var raycast_result = space_state.intersect_ray(raycast_query)
-	var target_acquired = ( \
-		"collider" in raycast_result and raycast_result.collider.has_node("team") \
-		and raycast_result.collider.get_node("team").is_enemy(character.get_node("team"))
+	var ray_to_target = laser_direction * distance_to_target
+	if raycast_result == null:
+		raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
+			character.get_global_position(),
+			character.get_global_position() + ray_to_target
+		))
+	var target_acquired = (
+		( # Collsiion detected at gunpoint, and the target is an enemy
+			"collider" in raycast_result and raycast_result.collider.has_node("team")
+			and raycast_result.collider.get_node("team").is_enemy(character.get_node("team"))
+		) or ( # Becuase the Carriers might have more complex geometry, the raycasts don't work on them FOR SOME REASON >:C
+			null != chosen_target and "carrier" in chosen_target.name # Workaround: the chosen target is a carrier and the gunpoint points within its radius
+			and (character.get_global_position() + ray_to_target - chosen_target.get_global_position()).length() <= chosen_target.approx_size
+			and ( # and Either there's no raycast result, or it's further away than the actual target
+				not "collider" in raycast_result
+				or distance_to_target <= (raycast_result.collider.get_global_position() - character.get_global_position()).length()
+			)
+		)
 	)
 
 	action["cursor"] = laser_direction
