@@ -221,6 +221,13 @@ func _unhandled_input(inev: InputEvent) -> void:
 			
 		# move camera lightly on boost  
 		if action["boost"]:
+			$booster_fx.visible = true
+			$thruster_fx.visible = false
+			$booster_sound.play()
+			await $booster_sound.finished.connect(func():
+				$booster_fx.visible = false
+				$thruster_fx.visible = true
+			)
 			var camera_direction = $controller.intent_direction * -1
 			var boost_tween = create_tween()
 			boost_tween.tween_property($cam, "offset", camera_direction * approx_size * 2., 0.1)

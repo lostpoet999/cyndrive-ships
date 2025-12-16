@@ -1,4 +1,4 @@
-[gd_scene load_steps=30 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=31 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
@@ -20,6 +20,7 @@
 [ext_resource type="AudioStream" uid="uid://biwkhw0f55auh" path="res://audio/explosion_001.wav" id="18_cicko"]
 [ext_resource type="AudioStream" uid="uid://crl7k0i27bpfn" path="res://audio/explosion_002.wav" id="19_bj47h"]
 [ext_resource type="AudioStream" uid="uid://c4vwsdafjla4u" path="res://audio/explosion_003.wav" id="20_4lh0q"]
+[ext_resource type="AudioStream" uid="uid://bokt2np2jc03c" path="res://audio/engine_booster.wav" id="21_cicko"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
 radius = 15.0
@@ -174,3 +175,6 @@ color_ramp = SubResource("Gradient_0dpix")
 
 [node name="explosion_sound" type="AudioStreamPlayer2D" parent="."]
 stream = SubResource("AudioStreamRandomizer_7qyni")
+
+[node name="booster_sound" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("21_cicko")
