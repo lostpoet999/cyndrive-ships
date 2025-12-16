@@ -4,6 +4,7 @@ class_name BattleCharacter extends CharacterBody2D
 @export var team_id = 0
 @export var spawn_position = Vector2()
 @export var color = Color.from_rgba8(0,0,0,0)
+@export var skin_layers: Array = [preload("res://textures/battle_ship.png")]
 @export var starting_health = 10.
 @export var target_assist_shape: CollisionShape2D
 @export var temporal_correction_distance_threshold: float = approx_size / 2.
@@ -13,6 +14,8 @@ class_name BattleCharacter extends CharacterBody2D
 
 var target_assist_original_size: float = 150.
 func _ready() -> void:
+	#TODO: add a Sprite for each layer
+	$skin.set_texture(skin_layers[0])
 	$skin.material = $skin.material.duplicate() # To have different colors for each ship
 	$team.initialize(team_id, spawn_position, color)
 	$skin.material.set_shader_parameter("team_color", $team.color)
@@ -37,7 +40,7 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 	var correction_length = (snapshot["transform"].get_origin() - get_transform().get_origin()).length()
 	var tween_length = max(0., over_time_msec) / 1000.;
 	if "internal_force" in snapshot:
-		create_tween().tween_property(self, "internal_force", snapshot["internal_force"], tween_length)
+		create_tween().tween_property($controller, "internal_force", snapshot["internal_force"], tween_length)
 	if "velocity" in snapshot:
 		create_tween().tween_property(self, "velocity", snapshot["velocity"], tween_length)
 
@@ -48,6 +51,7 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 		clone.set_material(clone.material.duplicate())
 		clone.set_transform($skin.get_transform())
 		clone.set_global_position(get_global_position())
+		if "replace_skin" in clone: clone.replace_skin = false
 		get_parent().add_child(clone)
 		var tween = create_tween()
 		tween.tween_method(
@@ -149,8 +153,8 @@ func _process(_delta):
 			#erase a previous explosion if there was any
 			if ship_explosion == null:
 				ship_explosion = explosion_template.instantiate().duplicate()
+				get_tree().get_root().add_child(ship_explosion)
 			ship_explosion.reinit()
-			get_tree().get_root().add_child(ship_explosion)
 			ship_explosion.set_global_position(get_global_position())
 			was_alive = false
 			was_in_battle = false
@@ -245,7 +249,7 @@ func _unhandled_input(inev: InputEvent) -> void:
 			boost_tween.chain()
 	process_input_action(action)
 
-func process_input_action(action):
+func process_input_action(action: Dictionary) -> void:
 	$controller.process_input_action(action)
 	if(control_enabled):
 		$laser_beam.process_input_action(action)
@@ -254,11 +258,11 @@ func process_input_action(action):
 		if has_node("energy_systems"):
 			$energy_systems.process_input_action(action)
 
-func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: int = 20):
+func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: int = 20) -> void:
 	if not has_node("cam"):
 		return
 	var tween = create_tween()
-	
+
 	# Create multiple random shakes
 	for i in frequency:
 		var shake_offset = Vector2(
@@ -266,11 +270,11 @@ func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: 
 			randf_range(-intensity, intensity)
 		)
 		tween.tween_property($cam, "offset", shake_offset, duration / frequency)
-	
+
 	# Return to center
 	tween.tween_property($cam, "offset", Vector2.ZERO, duration / frequency)
 
-func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5):
+func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5) -> void:
 	if not has_node("cam"):
 		return
 	var tween = create_tween()
@@ -285,4 +289,4 @@ func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5):
 		)
 		tween.tween_property($cam, "offset", shake_offset, duration / steps)
 	
-	tween.tween_property($camd, "offset", Vector2.ZERO, 0.1)
+	tween.tween_property($cam, "offset", Vector2.ZERO, 0.1)

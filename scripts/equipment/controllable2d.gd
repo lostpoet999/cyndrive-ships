@@ -1,11 +1,11 @@
 extends Node2D
 
-@onready var character = get_parent()
-@onready var team = get_parent().get_node("team")
-var enabled = false
-var intent_direction = Vector2()
-var intent_force = Vector2()
-var internal_force = Vector2()
+@onready var character: BattleCharacter = get_parent()
+@onready var team: Node2D = get_parent().get_node("team")
+var enabled: bool = false
+var intent_direction: Vector2 = Vector2()
+var intent_force: Vector2 = Vector2()
+var internal_force: Vector2 = Vector2()
 
 """
 Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
@@ -15,10 +15,10 @@ Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
 		- speed is capped to: top_speed
 		- deceleration: x^2
 """
-@export_range(0.001, 200) var top_speed = 0.5
-@export_range(1, 100) var start_resistance = 10
-@export_range(1, 100) var stop_resistance = 5
-@export_range(10., 100.) var booster_strength = 100.
+@export_range(0.001, 200) var top_speed: float = 20.
+@export_range(1, 100) var start_resistance: float = 10.
+@export_range(1, 100) var stop_resistance: float = 5.
+@export_range(10., 100.) var booster_strength: float = 100.
 @export_range(0., 1.) var momentum_dampener: float = 1.
 
 
@@ -26,29 +26,28 @@ Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
 From 0 to the top speed the curve the player changes speed is based on x^2 / @start_resistance.
 The function provides the speed based on x
 """
-func accelerate_function(x):
-	return pow(x,2) / start_resistance
+func accelerate_function(x: float) -> float:
+	return pow(x,2.) / start_resistance
 
 """
 Decelerating from top speed to fullstop the curve of the player speed follows x^2 / @stop_resistance.
 The function provides the speed based on x
 """	
-func decelerate_function(x):
-	var _x = max(0, x)
-	return pow(_x,2) / stop_resistance
+func decelerate_function(x: float) -> float:
+	return pow(max(0., x),2.) / stop_resistance
 
 """
 Given: y(@speed) = x^2/@start_resistance; Based on that x = sqrt(y * @start_resistance)
 The function provides the x value for the given y value(speed).
 """
-func get_accel_x(speed):
+func get_accel_x(speed: float) -> float:
 	return sqrt(start_resistance * speed)
 	
 """
 Given: y(@speed) = x^2/@stop_resistance; Based on that x = sqrt(y * @stop_resistance)
 The function provides the x value for the given y value(speed).
 """
-func get_decel_x(speed):
+func get_decel_x(speed: float) -> float:
 	return sqrt(stop_resistance * speed)
 	
 """
@@ -56,14 +55,14 @@ Accepts an inputevent and reconstructs an intent vector from it, based on the im
 Input.get_vector("left", "right", "up", "down")
 --> https://github.com/godotengine/godot/blob/a586e860e5fc382dec4ad9a0bec72f7c6684f020/core/input/input.cpp#L382
 """
-func get_vector(event, p_deadzone = -1.):
-	var vector = Vector2( \
+func get_vector(event: InputEvent, p_deadzone: float = -1.) -> Vector2:
+	var vector: Vector2 = Vector2( \
 		event.get_action_strength("right") - event.get_action_strength("left"), \
 		event.get_action_strength("down") - event.get_action_strength("up"), \
 	)
 	
-	var deadzone = p_deadzone
-	if deadzone < 0:
+	var deadzone: float = p_deadzone
+	if deadzone < 0.:
 		# If the deadzone isn't specified, get it from the average of the actions.
 		deadzone = 0.25 * (
 			InputMap.action_get_deadzone("left")
@@ -73,7 +72,7 @@ func get_vector(event, p_deadzone = -1.):
 		);
 	
 	# Circular lentgh limiting and deadzone
-	var length = vector.length()
+	var length: float = vector.length()
 	if(length <= deadzone):
 		return Vector2()
 	elif(length > 1.):
@@ -96,7 +95,8 @@ func process_input_action(action: Dictionary) -> void:
 	intent_direction += action["intent"]
 	intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
 	if action["boost"]:
-		intent_direction = action["intent"]
+		if 0. < action["intent"].length():
+			intent_direction = action["intent"]
 		internal_force = intent_direction * top_speed * booster_strength
 
 func _physics_process(_delta):
@@ -140,7 +140,7 @@ func _physics_process(_delta):
 
 #region temporal corrective functions
 
-func _set_internal_force(force: float) -> void:
+func _set_internal_force(force: Vector2) -> void:
 	internal_force = force
 
 #endregion

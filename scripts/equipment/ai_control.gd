@@ -98,7 +98,7 @@ func _physics_process(delta: float) -> void:
 	# Determine the speed to advance towards the target
 	var ideal_speed = lerp(
 		character.get_node("controller").top_speed, 0.,
-		max_distance_from_target / (distance_to_target)
+		max_distance_from_target / distance_to_target
 	)
 	
 	laser_direction = lerp(laser_direction, to_target, laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
