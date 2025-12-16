@@ -14,12 +14,12 @@
 [ext_resource type="AudioStream" uid="uid://dxola10ny5udx" path="res://audio/laserShoot (2).wav" id="9_ih8y6"]
 [ext_resource type="AudioStream" uid="uid://bguhqs53aq370" path="res://audio/laserShoot (3).wav" id="10_rbud2"]
 [ext_resource type="AudioStream" uid="uid://dg0r36bkobs0y" path="res://audio/laserShoot (4).wav" id="11_vovfy"]
-[ext_resource type="AudioStream" uid="uid://x01j2fo2me0d" path="res://audio/engine_thruster.wav" id="14_8yvht"]
+[ext_resource type="AudioStream" uid="uid://b31lu2674vue5" path="res://audio/engine_thruster.wav" id="14_8yvht"]
 [ext_resource type="Script" uid="uid://b8xstfcmfbymf" path="res://scripts/effects/thruster_fx.gd" id="16_x8k1v"]
-[ext_resource type="AudioStream" uid="uid://rps6evxmvrsb" path="res://audio/explosion_01.wav" id="17_u0pwc"]
-[ext_resource type="AudioStream" uid="uid://dajttw71kitgt" path="res://audio/explosion_001.wav" id="18_cicko"]
-[ext_resource type="AudioStream" uid="uid://besa8dwtnwqwy" path="res://audio/explosion_002.wav" id="19_bj47h"]
-[ext_resource type="AudioStream" uid="uid://bcnnssuecafi" path="res://audio/explosion_003.wav" id="20_4lh0q"]
+[ext_resource type="AudioStream" uid="uid://ci5c40c58dtnh" path="res://audio/explosion_01.wav" id="17_u0pwc"]
+[ext_resource type="AudioStream" uid="uid://biwkhw0f55auh" path="res://audio/explosion_001.wav" id="18_cicko"]
+[ext_resource type="AudioStream" uid="uid://crl7k0i27bpfn" path="res://audio/explosion_002.wav" id="19_bj47h"]
+[ext_resource type="AudioStream" uid="uid://c4vwsdafjla4u" path="res://audio/explosion_003.wav" id="20_4lh0q"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
 radius = 15.0
