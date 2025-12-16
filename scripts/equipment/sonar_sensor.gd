@@ -12,7 +12,7 @@ func set_manual_rotation(rad: float) -> void:
 	direct_control = true
 	set_global_rotation(rad)
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	if !direct_control: set_global_rotation(get_global_rotation() + rotation_speed)
 	display_node.set_display_rotation(get_global_rotation())
 	

@@ -79,12 +79,22 @@ func get_mass() -> float:
 func apply_impulse(impulse: Vector2) -> void:
 	$controller.internal_force += impulse
 
+# Keeping track of the body the character is in contact with
+var body_in_contact: Object = null
+var contact_time: float = 0.
 func _physics_process(delta: float) -> void:
 	if control_enabled == true:
 		var collision = move_and_collide(get_velocity() * delta)
 		if collision != null and collision.get_collider().has_method("get_mass"):
-			var mass_ratio = get_mass() / collision.get_collider().get_mass()
-			collision.get_collider().apply_impulse($controller.internal_force * delta * mass_ratio * 0.9)
+			if body_in_contact == collision.get_collider():
+				contact_time += delta
+			else:
+				contact_time = 0.
+			body_in_contact = collision.get_collider()
+			var mass_ratio = get_mass() / body_in_contact.get_mass()
+			body_in_contact.apply_impulse($controller.internal_force * delta * mass_ratio * 0.9)
+		else:
+			contact_time = 0.
 
 @onready var was_alive = is_alive()
 @onready var was_in_battle = in_battle()
@@ -144,7 +154,7 @@ func _process(_delta):
 			ship_explosion.set_global_position(get_global_position())
 			was_alive = false
 			was_in_battle = false
-			explosion_shake($cam, 100., 0.8)
+			explosion_shake(100., 0.8)
 			$explosion_sound.play()
 
 	# Erase explosion if alive
@@ -155,9 +165,9 @@ func _process(_delta):
 func accept_damage(strength):
 	$health.accept_damage(strength)
 	if $health.health > 3:
-		explosion_shake_smooth($cam)
+		explosion_shake_smooth()
 	else:
-		explosion_shake($cam)
+		explosion_shake()
 
 func move_to_spawn_position():
 	set_transform(spawn_transform)
@@ -244,7 +254,9 @@ func process_input_action(action):
 		if has_node("energy_systems"):
 			$energy_systems.process_input_action(action)
 
-func explosion_shake(target: Object, intensity: float = 30.0, duration: float = 0.5, frequency: int = 20):
+func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: int = 20):
+	if not has_node("cam"):
+		return
 	var tween = create_tween()
 	
 	# Create multiple random shakes
@@ -253,12 +265,14 @@ func explosion_shake(target: Object, intensity: float = 30.0, duration: float = 
 			randf_range(-intensity, intensity),
 			randf_range(-intensity, intensity)
 		)
-		tween.tween_property(target, "offset", shake_offset, duration / frequency)
+		tween.tween_property($cam, "offset", shake_offset, duration / frequency)
 	
 	# Return to center
-	tween.tween_property(target, "offset", Vector2.ZERO, duration / frequency)
+	tween.tween_property($cam, "offset", Vector2.ZERO, duration / frequency)
 
-func explosion_shake_smooth(target: Object, intensity: float = 30.0, duration: float = 0.5):
+func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5):
+	if not has_node("cam"):
+		return
 	var tween = create_tween()
 	var steps = 10
 	
@@ -269,6 +283,6 @@ func explosion_shake_smooth(target: Object, intensity: float = 30.0, duration: f
 			randf_range(-current_intensity, current_intensity),
 			randf_range(-current_intensity, current_intensity)
 		)
-		tween.tween_property(target, "offset", shake_offset, duration / steps)
+		tween.tween_property($cam, "offset", shake_offset, duration / steps)
 	
-	tween.tween_property(target, "offset", Vector2.ZERO, 0.1)
+	tween.tween_property($camd, "offset", Vector2.ZERO, 0.1)

@@ -7,8 +7,11 @@ extends Node2D
 @export var difficuilty_laser_frequency_sec: float = 0.8
 @export var attack_range: float = 2000.
 @export var goldfish_memory_sec: float = 1.
+@export var stuck_sec_threshold = 3.
+@export var stuck_motion_threshold = 30.
 
 @onready var character: BattleCharacter = get_parent()
+var position_moving_avg: Vector2 = get_global_position()
 var time_until_script_execution = 1. / runs_per_second
 var chosen_target: CharacterBody2D
 var laser_direction: Vector2
@@ -38,7 +41,6 @@ func _physics_process(delta: float) -> void:
 	action["cursor"] = Vector2()
 	action["pewpew"] = false
 	action["boost"] = false
-
 
 	var combatants = character.get_parent()
 	var to_target : Vector2
@@ -129,4 +131,12 @@ func _physics_process(delta: float) -> void:
 	if action["pewpew"]:
 		time_since_laser = 0
 
+	# Detect if the ship is stuck, and apply boost to break free
+	position_moving_avg = lerp(get_global_position(), position_moving_avg, 0.5)
+	if ( # The ship is in one place, and has a long term contact, overwrite intent to "unstuck"
+		(get_global_position() - position_moving_avg).length() < stuck_motion_threshold
+		and null != get_parent().body_in_contact and get_parent().contact_time > stuck_sec_threshold
+	):
+		action["boost"] = true
+		action["intent"] = (character.get_global_position() - get_parent().body_in_contact.get_global_position()).normalized()
 	character.process_input_action(action)

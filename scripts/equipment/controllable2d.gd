@@ -95,8 +95,8 @@ func stop() -> void:
 func process_input_action(action: Dictionary) -> void:
 	intent_direction += action["intent"]
 	intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
-	
 	if action["boost"]:
+		intent_direction = action["intent"]
 		internal_force = intent_direction * top_speed * booster_strength
 
 func _physics_process(_delta):
