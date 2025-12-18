@@ -3,7 +3,7 @@ extends ShapeCast2D
 @export var rotation_speed: float = 0.005
 @export var blip_radius: float = 100.
 
-@onready var display_node: ColorRect = get_node("/root/battle/GUI/sonar_display")
+@onready var display_node: ColorRect = get_node("/root/battle/GUI/sensors_display")
 
 var direct_control: bool = false
 var blips: Dictionary = {}
@@ -14,7 +14,7 @@ func set_manual_rotation(rad: float) -> void:
 
 func _process(_delta: float) -> void:
 	if !direct_control: set_global_rotation(get_global_rotation() + rotation_speed)
-	display_node.set_display_rotation(get_global_rotation())
+	display_node.set_sonar_rotation(get_global_rotation())
 	
 func _physics_process(_delta: float) -> void:
 	force_shapecast_update()

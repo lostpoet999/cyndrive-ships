@@ -34,8 +34,12 @@ func _draw() -> void:
 	for line in debug_lines:
 		draw_line(line.from, line.to, line.color, 3.0)
 
+@onready var battle_start_timetamp_msec: int = int(Time.get_unix_time_from_system())
 func _process(delta):
+	var display_time: int = battle_start_timetamp_msec + int(BattleTimeline.instance.time_msec())
 	$GUI/fps.set_text("%s fps" % str(Engine.get_frames_per_second()))
+	$GUI/time.set_text("0x%X//%X" % [display_time >> 16, display_time & 0xFFFF])
+
 	# Countdown to battle start
 	if 0 < init_countdown:
 		init_countdown = max(init_countdown - delta, 0)
@@ -44,7 +48,7 @@ func _process(delta):
 			for combatant in $combatants.get_children():
 				combatant.resume_control()
 			$timeline.reset()
-			$GUI/sonar_display.set_display_visibility(false)
+			$GUI/sensors_display.set_sonar_visibility(false)
 		return
 	
 	# Team size label update
@@ -104,7 +108,6 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("replay") and just_pressed:
 		reverse_being_held = true
-		$GUI/reverse_marker.visible = true
 		$GUI/rewind_effects.visible = true
 		$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec + short_reverse_hold_time_sec)
 		create_tween().tween_method(
@@ -113,7 +116,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		)
 	if event.is_action_released("replay"):
 		reverse_being_held = false
-		$GUI/reverse_marker.visible = false
 		var rewind_over_tween = create_tween()
 		rewind_over_tween.tween_method(
 			func(value): $GUI/rewind_effects.material.set_shader_parameter("rewind_intensity", value),
@@ -125,8 +127,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	
 	if event.is_action_pressed("radar-control") and just_pressed:
 		$combatants/character/sonar_sensor.direct_control = true
-		$GUI/sonar_display.set_display_visibility(true)
+		$GUI/sensors_display.set_sonar_visibility(true)
 
 	if event.is_action_released("radar-control"):
-		$GUI/sonar_display.set_display_visibility(false)
+		$GUI/sensors_display.set_sonar_visibility(false)
 		$combatants/character/sonar_sensor.direct_control = false

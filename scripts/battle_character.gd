@@ -1,5 +1,7 @@
 class_name BattleCharacter extends CharacterBody2D
 
+signal health_changed(percentage: float)
+
 @export var approx_size: float = 100.
 @export var team_id = 0
 @export var spawn_position = Vector2()
@@ -168,6 +170,7 @@ func _process(_delta):
 
 func accept_damage(strength):
 	$health.accept_damage(strength)
+	health_changed.emit($health.health / starting_health)
 	if $health.health > 3:
 		explosion_shake_smooth()
 	else:
