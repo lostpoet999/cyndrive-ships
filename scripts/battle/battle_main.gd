@@ -22,11 +22,6 @@ func _ready():
 	for debris in $debris.get_children():
 		$timeline.connect("round_reset", debris.respawn)
 	
-var reverse_hold_time = 0.
-var reverse_being_held = false
-var reverse_initiated = false
-const short_reverse_hold_time_sec = 0.15 # How long to hold down the reverse action to start reversing time, instead of restarting the round
-
 var debug_lines = []
 func display_line(from: Vector2, to: Vector2, color: Color) -> void:
 	debug_lines.push_back({"from": from, "to": to, "color": color})
@@ -80,10 +75,17 @@ func restart_round() -> void:
 	)
 	player_move_tween.chain()
 
+const tap_interval_msec: int = 500
+const short_reverse_hold_time_sec: float = 0.15 # How long to hold down the reverse action to start reversing time
+var reverse_being_held: bool = false
+var reverse_initiated: bool = false
+var reverse_hold_time_sec: float = 0.
+var reverse_tap_count: int = 0
+var reverse_last_tap_at: int = Time.get_ticks_msec()
 @onready var battle_start_timetamp_msec: int = int(Time.get_unix_time_from_system())
 func _process(delta):
 	var display_time: int = battle_start_timetamp_msec + int(BattleTimeline.instance.time_msec())
-	$GUI/fps.set_text("%s fps" % str(Engine.get_frames_per_second()))
+	$GUI/fps.set_text("%s fps" % Engine.get_frames_per_second())
 	$GUI/time.set_text("0x%X//%X" % [display_time >> 16, display_time & 0xFFFF])
 
 	# Countdown to battle start
@@ -104,25 +106,31 @@ func _process(delta):
 	if $combatants/character/sonar_sensor.direct_control:
 		var direction = (get_global_mouse_position() - $combatants/character.get_global_position()).normalized()
 		$combatants/character/sonar_sensor.set_manual_rotation(direction.angle())
-	
+
+	# Handling Battle restart
+	if (Time.get_ticks_msec() - reverse_last_tap_at) > tap_interval_msec:
+		reverse_tap_count = 0
+	if 2 <= reverse_tap_count:
+		reverse_tap_count = 0
+		restart_round()
+
 	# Handling Timeline reverse
 	if reverse_being_held:
-		reverse_hold_time += delta
-		if reverse_hold_time > short_reverse_hold_time_sec:
+		reverse_hold_time_sec += delta
+		if reverse_hold_time_sec > short_reverse_hold_time_sec:
+			reverse_initiated = true
 			$timeline.reverse(delta)
+			$GUI/rewind_effects.set_visible(true)
 			$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec)
 			$GUI/defeat.set_visible(false)
 			$GUI/victory.set_visible(false)
 			$GUI/restart_round_panel.set_visible(false)
 	if reverse_initiated:
 		if not reverse_being_held:
-			# Short rewind press: assign the recorded moves to puppets and reset the battleground
-			if reverse_hold_time <= short_reverse_hold_time_sec:
-				restart_round()
-			else: 
-				$timeline.finish_reverse()
-			reverse_hold_time = 0.
+			$timeline.finish_reverse()
+			reverse_hold_time_sec = 0.
 			reverse_initiated = false
+			$GUI/rewind_effects.set_visible(false)
 
 func create_new_puppet(predecessor):
 	#Initialize the new clone/puppet
@@ -161,17 +169,14 @@ func _unhandled_input(event: InputEvent) -> void:
 	var just_pressed = event.is_pressed() and not event.is_echo()
 
 	if event.is_action_pressed("replay") and just_pressed:
+		if (Time.get_ticks_msec() - reverse_last_tap_at) < tap_interval_msec:
+			reverse_tap_count += 1
+		reverse_last_tap_at = Time.get_ticks_msec()
 		reverse_being_held = true
-		$GUI/rewind_effects.set_visible(true)
-		$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec + short_reverse_hold_time_sec)
-		create_tween().tween_method(
-			func(value): $GUI/rewind_effects.material.set_shader_parameter("rewind_intensity", value),
-			0.0, 1.0, short_reverse_hold_time_sec
-		)
+		$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec)
+
 	if event.is_action_released("replay"):
 		reverse_being_held = false
-		$GUI/rewind_effects.set_visible(false)
-	reverse_initiated = reverse_initiated or reverse_being_held
 	
 	if event.is_action_pressed("radar-control") and just_pressed:
 		$combatants/character/sonar_sensor.direct_control = true

@@ -1,4 +1,4 @@
-[gd_scene load_steps=47 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=48 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle/battle_timeline.gd" id="2_ekamt"]
@@ -37,6 +37,10 @@
 [sub_resource type="LabelSettings" id="LabelSettings_gqr64"]
 font_size = 32
 font_color = Color(0, 1, 1, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_e50ek"]
+font_size = 32
+font_color = Color(0, 1, 1, 0.5019608)
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1m01a"]
 noise_type = 0
@@ -222,7 +226,7 @@ grow_vertical = 2
 text = "0xDEAD//BEEF"
 label_settings = SubResource("LabelSettings_gqr64")
 
-[node name="time_label" type="Label" parent="GUI"]
+[node name="info_label" type="Label" parent="GUI"]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -233,9 +237,9 @@ offset_bottom = -827.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "Time:
-Short press 'R' to restart battle
-Long press 'R' to rewind battle "
-label_settings = SubResource("LabelSettings_gqr64")
+Press 'R' to restart battle
+Triple-tap 'R' to rewind battle "
+label_settings = SubResource("LabelSettings_e50ek")
 
 [node name="objective" type="Label" parent="GUI"]
 anchors_preset = 15
