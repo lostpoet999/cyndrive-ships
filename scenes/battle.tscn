@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://bs1tb484wprlw" path="res://textures/asteroid.png" id="5_7e0bu"]
 [ext_resource type="Texture2D" uid="uid://b3l70a8ih0ytb" path="res://textures/stars_larger.png" id="5_vceff"]
 [ext_resource type="Script" uid="uid://dusbajbexl3be" path="res://scripts/equipment/target_assist.gd" id="6_cj32i"]
+[ext_resource type="LabelSettings" uid="uid://cihvmag3ppi8c" path="res://resources/highlighted_text_font.tres" id="7_mpb26"]
+[ext_resource type="LabelSettings" uid="uid://dbv6lunqh8d5t" path="res://resources/dimmed_text_font.tres" id="8_4u087"]
 [ext_resource type="Shader" uid="uid://rsuxn1jhme0d" path="res://shaders/rewind.gdshader" id="9_61i1y"]
 [ext_resource type="Script" path="res://scripts/status_container.gd" id="10_fpf3k"]
 [ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/effects/energy_bar_control.tscn" id="10_saiin"]
@@ -33,14 +35,6 @@
 [ext_resource type="Texture2D" uid="uid://dfromirgdvtne" path="res://textures/fighter-ship-stripe.png" id="23_1m01a"]
 [ext_resource type="Texture2D" uid="uid://bs8ao20cjqgpr" path="res://textures/fighter-ship-accent.png" id="24_lv4so"]
 [ext_resource type="Script" uid="uid://5nldkjwg5a4s" path="res://scripts/enemy/replacement_collision_shape.gd" id="25_eivww"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_gqr64"]
-font_size = 32
-font_color = Color(0, 1, 1, 1)
-
-[sub_resource type="LabelSettings" id="LabelSettings_e50ek"]
-font_size = 32
-font_color = Color(0, 1, 1, 0.5019608)
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1m01a"]
 noise_type = 0
@@ -211,7 +205,7 @@ offset_bottom = -986.0
 grow_horizontal = 2
 grow_vertical = 2
 text = "1 vs 1"
-label_settings = SubResource("LabelSettings_gqr64")
+label_settings = ExtResource("7_mpb26")
 
 [node name="time" type="Label" parent="GUI"]
 anchors_preset = 15
@@ -224,7 +218,7 @@ offset_bottom = -999.0949
 grow_horizontal = 2
 grow_vertical = 2
 text = "0xDEAD//BEEF"
-label_settings = SubResource("LabelSettings_gqr64")
+label_settings = ExtResource("7_mpb26")
 
 [node name="info_label" type="Label" parent="GUI"]
 anchors_preset = 15
@@ -239,7 +233,7 @@ grow_vertical = 2
 text = "Time:
 Press 'R' to restart battle
 Triple-tap 'R' to rewind battle "
-label_settings = SubResource("LabelSettings_e50ek")
+label_settings = ExtResource("8_4u087")
 
 [node name="objective" type="Label" parent="GUI"]
 anchors_preset = 15
@@ -253,7 +247,7 @@ grow_horizontal = 2
 grow_vertical = 2
 text = "Current Objective:
 survive"
-label_settings = SubResource("LabelSettings_gqr64")
+label_settings = ExtResource("7_mpb26")
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -289,23 +283,36 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -510.0
-offset_top = -83.0
+offset_left = -586.0
+offset_top = -159.0
 grow_horizontal = 0
 grow_vertical = 0
 theme_override_constants/margin_right = 40
 theme_override_constants/margin_bottom = 10
 
-[node name="status_container" type="HBoxContainer" parent="GUI/status_padding"]
+[node name="VBoxContainer" type="VBoxContainer" parent="GUI/status_padding"]
+layout_mode = 2
+
+[node name="temporal_equipment_status" type="HBoxContainer" parent="GUI/status_padding/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="laupeerium" parent="GUI/status_padding/VBoxContainer/temporal_equipment_status" instance=ExtResource("10_saiin")]
+layout_mode = 2
+label_text = "Time Engine Fuel"
+
+[node name="battleship_status" type="HBoxContainer" parent="GUI/status_padding/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 40
 script = ExtResource("10_fpf3k")
 
-[node name="laser_energy" parent="GUI/status_padding/status_container" instance=ExtResource("10_saiin")]
+[node name="laser_energy" parent="GUI/status_padding/VBoxContainer/battleship_status" instance=ExtResource("10_saiin")]
 layout_mode = 2
+label_text = "Laser"
 
-[node name="boost_energy" parent="GUI/status_padding/status_container" instance=ExtResource("10_saiin")]
+[node name="boost_energy" parent="GUI/status_padding/VBoxContainer/battleship_status" instance=ExtResource("10_saiin")]
 layout_mode = 2
+label_text = "Thruster Boost"
 
 [node name="objective_panel" type="TileMapLayer" parent="GUI"]
 modulate = Color(1, 1, 1, 0.54901963)
@@ -680,5 +687,5 @@ triggers_per_second = 20
 [connection signal="body_exited" from="target_assist" to="target_assist" method="_on_body_exited"]
 [connection signal="dead" from="combatants/player_carrier" to="." method="_on_battle_character_dead"]
 [connection signal="health_changed" from="combatants/character" to="GUI/sensors_display" method="set_health_percentage"]
-[connection signal="boost_energy_updated" from="combatants/character/energy_systems" to="GUI/status_padding/status_container" method="_on_energy_systems_boost_energy_updated"]
-[connection signal="laser_energy_updated" from="combatants/character/energy_systems" to="GUI/status_padding/status_container" method="_on_energy_systems_laser_energy_updated"]
+[connection signal="boost_energy_updated" from="combatants/character/energy_systems" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_boost_energy_updated"]
+[connection signal="laser_energy_updated" from="combatants/character/energy_systems" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_laser_energy_updated"]

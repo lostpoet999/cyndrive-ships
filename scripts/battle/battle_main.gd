@@ -1,11 +1,16 @@
 extends Node2D
 
-@onready var character_template = preload("res://scenes/character.tscn")
+@export var starting_laupeerium: float = 25.
 
-var init_countdown = 2.
+@onready var character_template = preload("res://scenes/character.tscn")
+@onready var laupeerium_bar: UIEnergyBar = $GUI/status_padding/VBoxContainer/temporal_equipment_status/laupeerium
+
+var init_countdown_sec: float = 2.
+var current_laupeerium: float = starting_laupeerium
 var living_team_members: Dictionary = {}
 
 func _ready():
+	laupeerium_bar.bars_remaining = UIEnergyBar.max_bars
 	$combatants/character.accepts_user_input(true)
 	$combatants/character/controller.stop()
 	living_team_members[2] = 0
@@ -36,6 +41,10 @@ func _draw() -> void:
 		draw_line(line.from, line.to, line.color, 3.0)
 
 func restart_round() -> void:
+	# subtract resources for rewinding
+	current_laupeerium -= 1.
+	laupeerium_bar.bars_remaining = round(float(UIEnergyBar.max_bars) * (current_laupeerium / starting_laupeerium))
+	
 	# Stop the fighting
 	for combatant in $combatants.get_children():
 		if "pause_control" in combatant:
@@ -89,10 +98,10 @@ func _process(delta):
 	$GUI/time.set_text("0x%X//%X" % [display_time >> 16, display_time & 0xFFFF])
 
 	# Countdown to battle start
-	if 0 < init_countdown:
-		init_countdown = max(init_countdown - delta, 0)
-		$GUI/score.set_text("%0.3f" % init_countdown)
-		if init_countdown <= 0:
+	if 0 < init_countdown_sec:
+		init_countdown_sec = max(init_countdown_sec - delta, 0)
+		$GUI/score.set_text("%0.3f" % init_countdown_sec)
+		if init_countdown_sec <= 0:
 			for combatant in $combatants.get_children():
 				combatant.resume_control()
 			$timeline.reset()
@@ -119,6 +128,8 @@ func _process(delta):
 		reverse_hold_time_sec += delta
 		if reverse_hold_time_sec > short_reverse_hold_time_sec:
 			reverse_initiated = true
+			current_laupeerium -= delta
+			laupeerium_bar.bars_remaining = round(float(UIEnergyBar.max_bars) * (current_laupeerium / starting_laupeerium))
 			$timeline.reverse(delta)
 			$GUI/rewind_effects.set_visible(true)
 			$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec)
