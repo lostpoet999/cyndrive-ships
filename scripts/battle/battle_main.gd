@@ -11,7 +11,7 @@ func _ready():
 	living_team_members[2] = 0
 	living_team_members[1] = 0
 	for combatant in $combatants.get_children():
-		combatant.move_to_spawn_position()
+		combatant.spawn_position = combatant.get_global_position()
 		$timeline.connect("round_reset", combatant.respawn)
 		$timeline.connect("rewind_started", combatant.pause_control)
 		$timeline.connect("rewind_stopped", combatant.resume_control)
@@ -41,18 +41,44 @@ func _draw() -> void:
 		draw_line(line.from, line.to, line.color, 3.0)
 
 func restart_round() -> void:
+	# Stop the fighting
+	for combatant in $combatants.get_children():
+		if "pause_control" in combatant:
+			combatant.pause_control()
+
+	# Create a clone of the ship
 	create_new_puppet($combatants/character)
-	$timeline.reset()
-	debug_lines.clear()
-	queue_redraw()
-	$GUI/defeat.set_visible(false)
-	$GUI/victory.set_visible(false)
-	$GUI/restart_round_panel.set_visible(false)
-	living_team_members[1] = 0
-	living_team_members[2] = 0
-	for c in $combatants.get_children():
-		if "is_alive" in c and c.is_alive():
-			living_team_members[c.get_node("team").team_id] += 1
+	$GUI/rewind_effects.set_visible(true)
+
+	# Move the player to its spawn position
+	var respawn_time = 1.
+	var player_move_tween = create_tween()
+	player_move_tween.tween_method(
+		func(pos):
+			$combatants/character.set_global_position(pos)
+			$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", -(pos - $combatants/character.spawn_position).length() / 500.),
+		$combatants/character.get_global_position(),
+		$combatants/character.spawn_position,
+		respawn_time
+	)
+	player_move_tween.tween_callback(func():
+		for combatant in $combatants.get_children():
+			if "pause_control" in combatant:
+				combatant.resume_control()
+		$GUI/rewind_effects.set_visible(false)
+		$timeline.reset()
+		debug_lines.clear()
+		queue_redraw()
+		$GUI/defeat.set_visible(false)
+		$GUI/victory.set_visible(false)
+		$GUI/restart_round_panel.set_visible(false)
+		living_team_members[1] = 0
+		living_team_members[2] = 0
+		for c in $combatants.get_children():
+			if "is_alive" in c and c.is_alive():
+				living_team_members[c.get_node("team").team_id] += 1
+	)
+	player_move_tween.chain()
 
 @onready var battle_start_timetamp_msec: int = int(Time.get_unix_time_from_system())
 func _process(delta):
@@ -99,6 +125,7 @@ func _process(delta):
 			reverse_initiated = false
 
 func create_new_puppet(predecessor):
+	#Initialize the new clone/puppet
 	var records = predecessor.get_node("temporal_recorder").stop_recording()
 	var puppet = character_template.instantiate();
 	var replayer = Node2D.new()
@@ -116,7 +143,17 @@ func create_new_puppet(predecessor):
 	puppet.add_child(replayer, true)
 	puppet.dead.connect(_on_battle_character_dead)
 	puppet.resurrected.connect(_on_battle_character_resurrected)
-	
+
+	# set new spawn position for the predecessor
+	predecessor.spawn_position = (
+		$combatants/player_carrier.spawn_position
+		+ (
+			(predecessor.get_global_position() - $combatants/player_carrier.spawn_position).normalized()
+			* $combatants/player_carrier.approx_size
+		)
+	)
+
+	# Add the new puppet to battle
 	$combatants.add_child(puppet)
 	predecessor.get_node("temporal_recorder").start_recording()
 
@@ -125,7 +162,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 	if event.is_action_pressed("replay") and just_pressed:
 		reverse_being_held = true
-		$GUI/rewind_effects.visible = true
+		$GUI/rewind_effects.set_visible(true)
 		$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec + short_reverse_hold_time_sec)
 		create_tween().tween_method(
 			func(value): $GUI/rewind_effects.material.set_shader_parameter("rewind_intensity", value),
@@ -133,13 +170,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		)
 	if event.is_action_released("replay"):
 		reverse_being_held = false
-		var rewind_over_tween = create_tween()
-		rewind_over_tween.tween_method(
-			func(value): $GUI/rewind_effects.material.set_shader_parameter("rewind_intensity", value),
-			1.0, 0.0, short_reverse_hold_time_sec
-		)
-		rewind_over_tween.tween_callback(func () : $GUI/rewind_effects.visible = false)
-		rewind_over_tween.chain()
+		$GUI/rewind_effects.set_visible(false)
 	reverse_initiated = reverse_initiated or reverse_being_held
 	
 	if event.is_action_pressed("radar-control") and just_pressed:

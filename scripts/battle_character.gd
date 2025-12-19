@@ -5,16 +5,15 @@ signal dead(BattleCharacter)
 signal resurrected(BattleCharacter)
 
 @export var approx_size: float = 100.
-@export var team_id = 0
-@export var spawn_position = Vector2()
-@export var color = Color.from_rgba8(0,0,0,0)
+@export var team_id: int = 0
+@export var spawn_position: Vector2 = Vector2()
+@export var central_ship: bool = false
+@export var color: Color = Color.from_rgba8(0,0,0,0)
 @export var skin_layers: Array = [preload("res://textures/battle_ship.png")]
-@export var starting_health = 10.
+@export var starting_health: float = 10.
 @export var target_assist_shape: CollisionShape2D
 @export var temporal_correction_distance_threshold: float = approx_size / 2.
 @export_range(0., 200.) var mass: float = 10.
-
-@onready var spawn_transform = get_transform()
 
 var target_assist_original_size: float = 150.
 func _ready() -> void:
@@ -68,8 +67,6 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 func init_clone(predecessor: BattleCharacter) -> void:
 	ship_explosion = null
 	team_id = predecessor.team_id
-	spawn_transform = predecessor.spawn_transform
-	predecessor.spawn_transform = predecessor.transform
 	$skin.material.set_shader_parameter("team_color", $team.color)
 
 func is_alive() -> bool:
@@ -180,9 +177,8 @@ func accept_damage(strength):
 		explosion_shake()
 
 func move_to_spawn_position():
-	set_transform(spawn_transform)
-	move_and_slide()
-	
+	set_global_position(spawn_position)
+
 func respawn():
 	move_to_spawn_position()
 	set_velocity(Vector2())
