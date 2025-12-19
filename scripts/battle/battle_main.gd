@@ -41,10 +41,11 @@ func _draw() -> void:
 		draw_line(line.from, line.to, line.color, 3.0)
 
 func restart_round() -> void:
-	# subtract resources for rewinding
+	# Handle resource changes with round restart
 	current_laupeerium -= 1.
 	laupeerium_bar.bars_remaining = round(float(UIEnergyBar.max_bars) * (current_laupeerium / starting_laupeerium))
-	
+	$combatants/character/energy_systems.reset()
+
 	# Stop the fighting
 	for combatant in $combatants.get_children():
 		if "pause_control" in combatant:

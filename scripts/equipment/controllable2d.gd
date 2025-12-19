@@ -1,5 +1,8 @@
 extends Node2D
 
+@export var active_movement_rotation_threshold: float = 0.05
+@export var passive_movement_rotation_threshold: float = 0.15
+
 @onready var character: BattleCharacter = get_parent()
 @onready var team: Node2D = get_parent().get_node("team")
 var enabled: bool = false
@@ -99,6 +102,7 @@ func process_input_action(action: Dictionary) -> void:
 			intent_direction = action["intent"]
 		internal_force = intent_direction * top_speed * booster_strength
 
+@onready var last_position = get_global_position()
 func _physics_process(_delta):
 	if not enabled or BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.BACKWARD:
 		return
@@ -135,8 +139,13 @@ func _physics_process(_delta):
 	character.set_velocity(internal_force)
 
 	"""Apply angle based on speed"""
-	if 0.05 < intent_force.length():
+	if active_movement_rotation_threshold < intent_force.length():
 		character.set_rotation(intent_force.angle())
+	else:
+		var pos_delta = (get_global_position() - last_position)
+		if passive_movement_rotation_threshold < pos_delta.length():
+			character.set_global_rotation(lerp(pos_delta.angle(), get_global_rotation(), 0.2))
+	last_position = get_global_position()
 
 #region temporal corrective functions
 

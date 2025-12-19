@@ -254,12 +254,11 @@ func _unhandled_input(inev: InputEvent) -> void:
 
 func process_input_action(action: Dictionary) -> void:
 	$controller.process_input_action(action)
-	if(control_enabled):
-		$laser_beam.process_input_action(action)
-		if has_node("temporal_recorder"):
-			$temporal_recorder.process_input_action(action)
-		if has_node("energy_systems"):
-			$energy_systems.process_input_action(action)
+	$laser_beam.process_input_action(action)
+	if has_node("temporal_recorder"):
+		$temporal_recorder.process_input_action(action)
+	if has_node("energy_systems"):
+		$energy_systems.process_input_action(action)
 
 func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: int = 20) -> void:
 	if not has_node("cam"):

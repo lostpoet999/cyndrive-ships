@@ -100,7 +100,6 @@ func _physics_process(delta: float) -> void:
 		character.get_node("controller").top_speed, 0.,
 		max_distance_from_target / distance_to_target
 	)
-	
 	laser_direction = lerp(laser_direction, to_target, laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
 
 	# See if there's anything in the way to the target
@@ -115,7 +114,8 @@ func _physics_process(delta: float) -> void:
 			"collider" in raycast_result and raycast_result.collider.has_node("team")
 			and raycast_result.collider.get_node("team").is_enemy(character.get_node("team"))
 		) or ( # Becuase the Carriers might have more complex geometry, the raycasts don't work on them FOR SOME REASON >:C
-			null != chosen_target and "carrier" in chosen_target.name # Workaround: the chosen target is a carrier and the gunpoint points within its radius
+			null != chosen_target and chosen_target.is_in_group("complex_collision_shapes")
+			# Workaround: the chosen target is a carrier and the gunpoint points within its radius
 			and (character.get_global_position() + ray_to_target - chosen_target.get_global_position()).length() <= chosen_target.approx_size
 			and ( # and Either there's no raycast result, or it's further away than the actual target
 				not "collider" in raycast_result

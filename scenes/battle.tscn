@@ -362,7 +362,7 @@ texture = ExtResource("13_lv4so")
 
 [node name="victory" type="Sprite2D" parent="GUI"]
 visible = false
-position = Vector2(1045, 610)
+position = Vector2(1024, 610)
 texture = ExtResource("14_eivww")
 
 [node name="defeat" type="Sprite2D" parent="GUI"]
@@ -486,7 +486,7 @@ script = ExtResource("2_kjq4e")
 
 [node name="combatants" type="Node" parent="."]
 
-[node name="player_carrier" parent="combatants" instance=ExtResource("16_61i1y")]
+[node name="player_carrier" parent="combatants" groups=["complex_collision_shapes"] instance=ExtResource("16_61i1y")]
 position = Vector2(1690, -2699)
 team_id = 1
 skin_layers = [ExtResource("17_dd63g")]

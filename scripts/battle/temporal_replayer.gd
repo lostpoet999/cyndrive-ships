@@ -70,19 +70,18 @@ func _process(delta: float) -> void:
 	if abs(current_msec_records_key) >= msec_records.keys().size():
 		return # Do not correct position when out of timeframe, or already corrected in this physics loop
 	
-	# Apply nearest action ONLY when time is flowing forward and the action is near the current timepoint
-	if current_time_flow == BattleTimeline.TimeFlow.FORWARD \
-		and (delta_to_current_action < 0 or delta_to_current_action < (cached_frame_duration_usec / 2.)):
-			if 0 < delta_to_current_action: # await the next opportunity to apply the input
-				# but only wait for the 90% of the delta to account for delays in this function call (estimation)
-				var key_to_apply = current_action_key
-				get_tree().create_timer(delta_to_current_action / 900000.).connect("timeout", func():
-					ship.process_input_action(usec_records[usec_records.keys()[key_to_apply]])
-				)
-			else:
-				ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
-			current_action_key += current_time_flow
-			return # do not corrigate msec_records when an action was applieddd
+	# Apply nearest action only when the action is near the current timepoint
+	if abs(delta_to_current_action) < (cached_frame_duration_usec / 2.):
+		if 0 < delta_to_current_action: # await the next opportunity to apply the input
+			# but only wait for the 90% of the delta to account for delays in this function call (estimation)
+			var key_to_apply = current_action_key
+			get_tree().create_timer(delta_to_current_action / 900000.).connect("timeout", func():
+				ship.process_input_action(usec_records[usec_records.keys()[key_to_apply]])
+			)
+		else:
+			ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
+		current_action_key += current_time_flow
+		return # do not corrigate msec_records when an action was applied
 	
 	# Move msec_records pointer to the closest time point
 	var delta_to_current_msec_records = ( \

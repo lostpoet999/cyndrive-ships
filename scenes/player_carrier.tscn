@@ -94,6 +94,7 @@ texture = ExtResource("7_d02ko")
 
 [node name="controller" type="Node2D" parent="."]
 script = ExtResource("9_xatsn")
+passive_movement_rotation_threshold = 0.2
 booster_strength = 50.0
 momentum_dampener = 0.85
 

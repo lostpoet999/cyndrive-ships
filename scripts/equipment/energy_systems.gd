@@ -6,7 +6,13 @@ class_name EnergySystems extends Node
 func _ready() -> void:
 	laser_energy_updated.emit(boost_energy_remaining)
 	boost_energy_updated.emit(laser_energy_remaining)
-	
+
+func reset() -> void:
+	boost_energy_remaining = max_boost
+	laser_energy_remaining = max_laser
+	laser_energy_updated.emit(boost_energy_remaining)
+	boost_energy_updated.emit(laser_energy_remaining)
+
 # called from the function by the same name in the battle_character script
 var is_boosting: bool
 var is_lasering: bool
@@ -35,7 +41,6 @@ signal boost_energy_updated(new_energy_level: int)
 func _update_boost_energy(bars: int):
 	boost_energy_remaining = clamp(boost_energy_remaining + bars, 0, max_boost)
 	boost_energy_updated.emit(boost_energy_remaining)
-
 
 #Drain
 var boost_time = 0.0
