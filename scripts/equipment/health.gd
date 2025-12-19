@@ -1,8 +1,6 @@
 extends Node2D
 
-@export var starting_health: float = 10.
-
-@onready var health: float = starting_health
+@onready var health: float = get_parent().starting_health
 
 func value() -> float:
 	return health
@@ -20,4 +18,4 @@ func accept_damage(strength) -> void:
 
 func respawn() -> void:
 	is_alive = true
-	health = starting_health
+	health = get_parent().starting_health

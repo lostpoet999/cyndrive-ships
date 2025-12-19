@@ -3,15 +3,21 @@ extends Node2D
 @onready var character_template = preload("res://scenes/character.tscn")
 
 var init_countdown = 2.
+var living_team_members: Dictionary = {}
 
 func _ready():
 	$combatants/character.accepts_user_input(true)
 	$combatants/character/controller.stop()
+	living_team_members[2] = 0
+	living_team_members[1] = 0
 	for combatant in $combatants.get_children():
 		combatant.move_to_spawn_position()
 		$timeline.connect("round_reset", combatant.respawn)
 		$timeline.connect("rewind_started", combatant.pause_control)
 		$timeline.connect("rewind_stopped", combatant.resume_control)
+		combatant.dead.connect(_on_battle_character_dead)
+		combatant.resurrected.connect(_on_battle_character_resurrected)
+		living_team_members[combatant.get_node("team").team_id] += 1
 
 	for debris in $debris.get_children():
 		$timeline.connect("round_reset", debris.respawn)
@@ -34,6 +40,20 @@ func _draw() -> void:
 	for line in debug_lines:
 		draw_line(line.from, line.to, line.color, 3.0)
 
+func restart_round() -> void:
+	create_new_puppet($combatants/character)
+	$timeline.reset()
+	debug_lines.clear()
+	queue_redraw()
+	$GUI/defeat.set_visible(false)
+	$GUI/victory.set_visible(false)
+	$GUI/restart_round_panel.set_visible(false)
+	living_team_members[1] = 0
+	living_team_members[2] = 0
+	for c in $combatants.get_children():
+		if "is_alive" in c and c.is_alive():
+			living_team_members[c.get_node("team").team_id] += 1
+
 @onready var battle_start_timetamp_msec: int = int(Time.get_unix_time_from_system())
 func _process(delta):
 	var display_time: int = battle_start_timetamp_msec + int(BattleTimeline.instance.time_msec())
@@ -49,16 +69,11 @@ func _process(delta):
 				combatant.resume_control()
 			$timeline.reset()
 			$GUI/sensors_display.set_sonar_visibility(false)
-		return
-	
-	# Team size label update
-	var counts = Dictionary()
-	counts[1] = 0
-	counts[2] = 0
-	for c in $combatants.get_children():
-		if "is_alive" in c and c.is_alive():
-			counts[c.get_node("team").team_id] += 1
-	$GUI/score.set_text(str(counts[1], " vs ", counts[2]))
+			$GUI/sensors_display.expose_health()
+		else: return
+
+	# score, target assist area and sensor control
+	$GUI/score.set_text(str(living_team_members[1], " vs ", living_team_members[2]))
 	$target_assist.set_position(get_global_mouse_position())
 	if $combatants/character/sonar_sensor.direct_control:
 		var direction = (get_global_mouse_position() - $combatants/character.get_global_position()).normalized()
@@ -70,14 +85,14 @@ func _process(delta):
 		if reverse_hold_time > short_reverse_hold_time_sec:
 			$timeline.reverse(delta)
 			$GUI/rewind_effects.material.set_shader_parameter("rewind_amount", BattleTimeline.instance.player_rewind_amount_sec)
+			$GUI/defeat.set_visible(false)
+			$GUI/victory.set_visible(false)
+			$GUI/restart_round_panel.set_visible(false)
 	if reverse_initiated:
 		if not reverse_being_held:
 			# Short rewind press: assign the recorded moves to puppets and reset the battleground
 			if reverse_hold_time <= short_reverse_hold_time_sec:
-				create_new_puppet($combatants/character)
-				$timeline.reset()
-				debug_lines.clear()
-				queue_redraw()
+				restart_round()
 			else: 
 				$timeline.finish_reverse()
 			reverse_hold_time = 0.
@@ -99,6 +114,8 @@ func create_new_puppet(predecessor):
 	$timeline.connect("round_reset", replayer.start_replay)
 	replayer.reset()
 	puppet.add_child(replayer, true)
+	puppet.dead.connect(_on_battle_character_dead)
+	puppet.resurrected.connect(_on_battle_character_resurrected)
 	
 	$combatants.add_child(puppet)
 	predecessor.get_node("temporal_recorder").start_recording()
@@ -132,3 +149,38 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_released("radar-control"):
 		$GUI/sensors_display.set_sonar_visibility(false)
 		$combatants/character/sonar_sensor.direct_control = false
+
+func player_defeated() -> bool:
+	return (
+		not $combatants/player_carrier.is_alive()
+		or (
+			false # TODO: Laupeerium reserves are empty
+			and not $combatants/character.is_alive()
+		)
+	)
+
+func are_you_winning_son() -> bool:
+	return (
+		not player_defeated()
+		 and 0 == living_team_members[2]
+	)
+
+func _on_battle_character_dead(character: BattleCharacter) -> void:
+	living_team_members[character.get_node("team").team_id] -= 1
+	if player_defeated():
+		$GUI/victory.set_visible(false)
+		$GUI/restart_round_panel.set_visible(false)
+		$GUI/defeat.set_visible(true)
+	elif are_you_winning_son():
+		$GUI/restart_round_panel.set_visible(false)
+		$GUI/defeat.set_visible(false)
+		$GUI/victory.set_visible(true)
+	elif not $combatants/character.is_alive():
+		$GUI/victory.set_visible(false)
+		$GUI/defeat.set_visible(false)
+		$GUI/restart_round_panel.set_visible(true)
+
+func _on_battle_character_resurrected(character: BattleCharacter) -> void:
+	if $combatants/character.is_alive():
+		$GUI/restart_round_panel.set_visible(false)
+	living_team_members[character.get_node("team").team_id] += 1

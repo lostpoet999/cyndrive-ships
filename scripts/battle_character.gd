@@ -1,6 +1,8 @@
 class_name BattleCharacter extends CharacterBody2D
 
 signal health_changed(percentage: float)
+signal dead(BattleCharacter)
+signal resurrected(BattleCharacter)
 
 @export var approx_size: float = 100.
 @export var team_id = 0
@@ -162,6 +164,7 @@ func _process(_delta):
 			was_in_battle = false
 			explosion_shake(100., 0.8)
 			$explosion_sound.play()
+			dead.emit(self)
 
 	# Erase explosion if alive
 	if is_alive() and ship_explosion != null:
@@ -205,6 +208,7 @@ func resurrect_me():
 	set_visible(true)
 	if has_node("ai_control"):
 		$ai_control.enabled = true
+	resurrected.emit(self)
 
 var accepts_inputs = false
 var control_enabled = false

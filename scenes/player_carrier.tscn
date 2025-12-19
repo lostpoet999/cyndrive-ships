@@ -57,6 +57,7 @@ stream_3/stream = ExtResource("14_em532")
 script = ExtResource("1_ny2j2")
 approx_size = 700.0
 color = Color(1, 1, 1, 0)
+starting_health = 25.0
 mass = 100.0
 
 [node name="skin_bottom" type="Sprite2D" parent="."]
@@ -84,7 +85,6 @@ script = ExtResource("5_sti4k")
 
 [node name="health" type="Node2D" parent="."]
 script = ExtResource("6_i8lxl")
-starting_health = 100.0
 
 [node name="target_arrow" type="Sprite2D" parent="."]
 visible = false
@@ -94,9 +94,6 @@ texture = ExtResource("7_d02ko")
 
 [node name="controller" type="Node2D" parent="."]
 script = ExtResource("9_xatsn")
-top_speed = 20.0
-start_resistance = 2
-stop_resistance = 100
 booster_strength = 50.0
 momentum_dampener = 0.85
 
