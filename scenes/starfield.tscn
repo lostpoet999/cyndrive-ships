@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://damis5jj7pxm7"]
+
+[ext_resource type="Shader" uid="uid://b7ifbbmdopsb" path="res://shaders/starfield.gdshader" id="1_g6628"]
+
+[sub_resource type="Gradient" id="Gradient_6yukn"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_0ewwf"]
+noise_type = 0
+frequency = 0.3869
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4m7vi"]
+width = 2048
+height = 2048
+noise = SubResource("FastNoiseLite_0ewwf")
+color_ramp = SubResource("Gradient_6yukn")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_wdfpw"]
+shader = ExtResource("1_g6628")
+shader_parameter/resolution = Vector2(800, 600)
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_4m7vi")
+shader_parameter/density = 21.60000030696472
+shader_parameter/speed_x = 3.300001539293959
+shader_parameter/speed_y = 3.300001539293959
+shader_parameter/layers = 7.0
+
+[node name="Starfield" type="Node2D"]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_wdfpw")
+offset_left = -2048.0
+offset_top = -2048.0
+offset_right = 2048.0
+offset_bottom = 2048.0

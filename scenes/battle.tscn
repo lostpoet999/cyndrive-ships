@@ -1,4 +1,4 @@
-[gd_scene load_steps=48 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=53 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle/battle_timeline.gd" id="2_ekamt"]
@@ -8,6 +8,7 @@
 [ext_resource type="Texture2D" uid="uid://fh8yoymipqg2" path="res://textures/stars-seamless.png" id="3_61i1y"]
 [ext_resource type="Script" uid="uid://bib83etyoggcu" path="res://scripts/effects/sensors_display.gd" id="3_m8v8v"]
 [ext_resource type="Script" uid="uid://82hb1gbig1h3" path="res://scripts/equipment/sonar_sensor.gd" id="4_3fx1x"]
+[ext_resource type="Shader" uid="uid://b7ifbbmdopsb" path="res://shaders/starfield.gdshader" id="4_fqtyt"]
 [ext_resource type="Script" uid="uid://dpky47433cafo" path="res://scripts/equipment/ai_control.gd" id="5_3g8p0"]
 [ext_resource type="Texture2D" uid="uid://bs1tb484wprlw" path="res://textures/asteroid.png" id="5_7e0bu"]
 [ext_resource type="Texture2D" uid="uid://b3l70a8ih0ytb" path="res://textures/stars_larger.png" id="5_vceff"]
@@ -15,9 +16,9 @@
 [ext_resource type="LabelSettings" uid="uid://cihvmag3ppi8c" path="res://resources/highlighted_text_font.tres" id="7_mpb26"]
 [ext_resource type="LabelSettings" uid="uid://dbv6lunqh8d5t" path="res://resources/dimmed_text_font.tres" id="8_4u087"]
 [ext_resource type="Shader" uid="uid://rsuxn1jhme0d" path="res://shaders/rewind.gdshader" id="9_61i1y"]
-[ext_resource type="Script" path="res://scripts/status_container.gd" id="10_fpf3k"]
+[ext_resource type="Script" uid="uid://ba0vnf5082iwk" path="res://scripts/status_container.gd" id="10_fpf3k"]
 [ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/effects/energy_bar_control.tscn" id="10_saiin"]
-[ext_resource type="Texture2D" uid="uid://ci1a1of5pn6u" path="res://textures/ui/panel_tileset.png" id="12_1m01a"]
+[ext_resource type="Texture2D" uid="uid://dmwshk0rg5g1b" path="res://textures/ui/panel_tileset.png" id="12_1m01a"]
 [ext_resource type="Texture2D" uid="uid://xwsqnqwtnq0y" path="res://textures/stars_medium.png" id="13_6ni85"]
 [ext_resource type="Texture2D" uid="uid://026apoj7buxx" path="res://textures/ui/restart_button_up.png" id="13_e50ek"]
 [ext_resource type="Texture2D" uid="uid://o7i8sqffami5" path="res://textures/LASER_ICON.png" id="13_lv4so"]
@@ -35,6 +36,27 @@
 [ext_resource type="Texture2D" uid="uid://dfromirgdvtne" path="res://textures/fighter-ship-stripe.png" id="23_1m01a"]
 [ext_resource type="Texture2D" uid="uid://bs8ao20cjqgpr" path="res://textures/fighter-ship-accent.png" id="24_lv4so"]
 [ext_resource type="Script" uid="uid://5nldkjwg5a4s" path="res://scripts/enemy/replacement_collision_shape.gd" id="25_eivww"]
+
+[sub_resource type="Gradient" id="Gradient_8a2ah"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_ikjs2"]
+noise_type = 0
+frequency = 0.3869
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_4m7vi"]
+width = 2048
+height = 2048
+noise = SubResource("FastNoiseLite_ikjs2")
+color_ramp = SubResource("Gradient_8a2ah")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1rdfn"]
+shader = ExtResource("4_fqtyt")
+shader_parameter/resolution = Vector2(1024, 1024)
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_4m7vi")
+shader_parameter/density = 31.5000004544866
+shader_parameter/speed_x = 3.300001539293959
+shader_parameter/speed_y = 3.300001539293959
+shader_parameter/layers = 10.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1m01a"]
 noise_type = 0
@@ -133,12 +155,26 @@ script = ExtResource("2_ekamt")
 offset = Vector2(1024, 0)
 transform = Transform2D(1, 0, 0, 1, 1024, 0)
 
+[node name="starfield container" type="ParallaxLayer" parent="ParallaxBackground"]
+motion_scale = Vector2(0.001, 0.001)
+motion_offset = Vector2(2048, 2230)
+motion_mirroring = Vector2(4096, 4096)
+
+[node name="starfield-shaded" type="ColorRect" parent="ParallaxBackground/starfield container"]
+material = SubResource("ShaderMaterial_1rdfn")
+offset_left = -2048.0
+offset_top = -2048.0
+offset_right = 2048.0
+offset_bottom = 2048.0
+
 [node name="background_layer" type="ParallaxLayer" parent="ParallaxBackground"]
+visible = false
 motion_scale = Vector2(0.001, 0.001)
 motion_offset = Vector2(2048, 2230)
 motion_mirroring = Vector2(4096, 4096)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer"]
+visible = false
 texture_repeat = 3
 scale = Vector2(2, 2)
 texture = ExtResource("3_61i1y")
@@ -146,11 +182,13 @@ region_enabled = true
 region_rect = Rect2(0, 0, 4096, 4096)
 
 [node name="background_layer2" type="ParallaxLayer" parent="ParallaxBackground"]
+visible = false
 motion_scale = Vector2(0.002, 0.002)
 motion_offset = Vector2(2048, 2230)
 motion_mirroring = Vector2(4096, 4096)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer2"]
+visible = false
 texture_repeat = 3
 texture = ExtResource("13_6ni85")
 region_enabled = true
@@ -167,24 +205,13 @@ texture = ExtResource("5_vceff")
 region_rect = Rect2(0, 0, 2048, 2048)
 
 [node name="background_layer3" type="ParallaxLayer" parent="ParallaxBackground"]
+visible = false
 motion_scale = Vector2(0.003, 0.003)
 motion_offset = Vector2(2048, 2230)
 motion_mirroring = Vector2(4096, 4096)
 
 [node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer3"]
-texture_repeat = 3
-texture = ExtResource("14_vceff")
-flip_h = true
-flip_v = true
-region_enabled = true
-region_rect = Rect2(0, 0, 4096, 4096)
-
-[node name="background_layer4" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.004, 0.004)
-motion_offset = Vector2(2048, 2230)
-motion_mirroring = Vector2(4096, 4096)
-
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/background_layer4"]
+visible = false
 texture_repeat = 3
 texture = ExtResource("14_vceff")
 flip_h = true
