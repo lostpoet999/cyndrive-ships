@@ -1,4 +1,4 @@
-[gd_scene load_steps=53 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=51 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle/battle_timeline.gd" id="2_ekamt"]
@@ -38,8 +38,6 @@
 frequency = 0.0869
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_fqtyt"]
-width = 4096
-height = 4096
 noise = SubResource("FastNoiseLite_fqtyt")
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_8a2ah"]
@@ -48,8 +46,6 @@ frequency = 0.4
 fractal_octaves = 2
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_ikjs2"]
-width = 4096
-height = 4096
 generate_mipmaps = false
 noise = SubResource("FastNoiseLite_8a2ah")
 
@@ -59,38 +55,12 @@ shader_parameter/resolution = Vector2(4096, 4096)
 shader_parameter/uv_offset = Vector2(0, 0)
 shader_parameter/noise_texture_star_strength = SubResource("NoiseTexture2D_ikjs2")
 shader_parameter/noise_texture_star_color = SubResource("NoiseTexture2D_fqtyt")
-shader_parameter/density = 47.80000069737616
-shader_parameter/speed_x = 4.7499999933364734e-08
-shader_parameter/speed_y = 1.4901199989481029e-06
-shader_parameter/layers = 8.0
-shader_parameter/color_shift_strength = 0.30000001425
+shader_parameter/density = 4.70000005513444
+shader_parameter/stars_speed = Vector2(0, 0)
+shader_parameter/layers = 5.0
+shader_parameter/color_shift_strength = 0.2000000095
 shader_parameter/sample_rounder = 1000.0000475
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_e50ek"]
-shader = ExtResource("4_fqtyt")
-shader_parameter/resolution = Vector2(4096, 4096)
-shader_parameter/uv_offset = Vector2(0.2, 0.1)
-shader_parameter/noise_texture_star_strength = SubResource("NoiseTexture2D_ikjs2")
-shader_parameter/noise_texture_star_color = SubResource("NoiseTexture2D_fqtyt")
-shader_parameter/density = 47.80000069737616
-shader_parameter/speed_x = 4.7499999933364734e-08
-shader_parameter/speed_y = 1.4901199989481029e-06
-shader_parameter/layers = 8.0
-shader_parameter/color_shift_strength = 0.30000001425
-shader_parameter/sample_rounder = 1000.0000475
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_mpb26"]
-shader = ExtResource("4_fqtyt")
-shader_parameter/resolution = Vector2(4096, 4096)
-shader_parameter/uv_offset = Vector2(-0.1, 0.2)
-shader_parameter/noise_texture_star_strength = SubResource("NoiseTexture2D_ikjs2")
-shader_parameter/noise_texture_star_color = SubResource("NoiseTexture2D_fqtyt")
-shader_parameter/density = 47.80000069737616
-shader_parameter/speed_x = 4.7499999933364734e-08
-shader_parameter/speed_y = 1.4901199989481029e-06
-shader_parameter/layers = 8.0
-shader_parameter/color_shift_strength = 0.6000000285
-shader_parameter/sample_rounder = 1000.0000475
+shader_parameter/noise_scale = 250.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_1m01a"]
 noise_type = 0
@@ -185,54 +155,28 @@ script = ExtResource("1_j7yva")
 [node name="timeline" type="Node" parent="."]
 script = ExtResource("2_ekamt")
 
-[node name="ParallaxBackground" type="ParallaxBackground" parent="."]
+[node name="parallax_background" type="ParallaxBackground" parent="."]
 offset = Vector2(1024, 0)
 transform = Transform2D(1, 0, 0, 1, 1024, 0)
 
-[node name="starfield_container" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.001, 0.001)
+[node name="starfield_container" type="ParallaxLayer" parent="parallax_background"]
+motion_scale = Vector2(0.04, 0.04)
 motion_offset = Vector2(2048, 2048)
 motion_mirroring = Vector2(4096, 4096)
 
-[node name="starfield-shaded" type="ColorRect" parent="ParallaxBackground/starfield_container"]
+[node name="starfield-shaded" type="ColorRect" parent="parallax_background/starfield_container"]
 material = SubResource("ShaderMaterial_1rdfn")
 offset_left = -2048.0
 offset_top = -2048.0
 offset_right = 2048.0
 offset_bottom = 2048.0
 
-[node name="starfield_container2" type="ParallaxLayer" parent="ParallaxBackground"]
-motion_scale = Vector2(0.005, 0.005)
-motion_offset = Vector2(2048, 2048)
-motion_mirroring = Vector2(4096, 4096)
-
-[node name="starfield-shaded" type="ColorRect" parent="ParallaxBackground/starfield_container2"]
-self_modulate = Color(1, 1, 1, 0.5019608)
-material = SubResource("ShaderMaterial_e50ek")
-offset_left = -2048.0
-offset_top = -2048.0
-offset_right = 2048.0
-offset_bottom = 2048.0
-
-[node name="starfield_container3" type="ParallaxLayer" parent="ParallaxBackground"]
-self_modulate = Color(1, 1, 1, 0.2509804)
-motion_scale = Vector2(0.01, 0.01)
-motion_offset = Vector2(2048, 2048)
-motion_mirroring = Vector2(4096, 4096)
-
-[node name="starfield-shaded" type="ColorRect" parent="ParallaxBackground/starfield_container3"]
-material = SubResource("ShaderMaterial_mpb26")
-offset_left = -2048.0
-offset_top = -2048.0
-offset_right = 2048.0
-offset_bottom = 2048.0
-
-[node name="planet_layer" type="ParallaxLayer" parent="ParallaxBackground"]
+[node name="planet_layer" type="ParallaxLayer" parent="parallax_background"]
 motion_scale = Vector2(0.05, 0.05)
 motion_offset = Vector2(1024, 1024)
 motion_mirroring = Vector2(32184, 32184)
 
-[node name="Sprite2D" type="Sprite2D" parent="ParallaxBackground/planet_layer"]
+[node name="Sprite2D" type="Sprite2D" parent="parallax_background/planet_layer"]
 texture_repeat = 3
 texture = ExtResource("5_vceff")
 region_rect = Rect2(0, 0, 2048, 2048)
