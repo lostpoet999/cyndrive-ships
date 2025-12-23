@@ -9,7 +9,7 @@ signal resurrected(BattleCharacter)
 @export var spawn_position: Vector2 = Vector2()
 @export var central_ship: bool = false
 @export var color: Color = Color.from_rgba8(0,0,0,0)
-@export var skin_layers: Array = [preload("res://textures/battle_ship.png")]
+@export var skin_layers: Array[BattleShipSkin] = []
 @export var starting_health: float = 10.
 @export var target_assist_shape: CollisionShape2D
 @export var temporal_correction_distance_threshold: float = approx_size / 2.
@@ -17,11 +17,9 @@ signal resurrected(BattleCharacter)
 
 var target_assist_original_size: float = 150.
 func _ready() -> void:
-	#TODO: add a Sprite for each layer
-	$skin.set_texture(skin_layers[0])
-	$skin.material = $skin.material.duplicate() # To have different colors for each ship
 	$team.initialize(team_id, spawn_position, color)
-	$skin.material.set_shader_parameter("team_color", $team.color)
+	$skin.init_skin(skin_layers, $team.color)
+
 	if has_node("ai_control"):
 		$ai_control.enabled = true
 	if target_assist_shape:
@@ -51,14 +49,15 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 	if temporal_correction_distance_threshold < correction_length:
 		create_tween().tween_property(self, "transform", snapshot["transform"], tween_length)
 		var clone = $skin.duplicate()
-		clone.set_material(clone.material.duplicate())
+		clone.set_skins_material(preload("res://resources/implode_effect.tres").duplicate())
 		clone.set_transform($skin.get_transform())
 		clone.set_global_position(get_global_position())
+		clone.set_global_rotation(get_global_rotation())
 		if "replace_skin" in clone: clone.replace_skin = false
 		get_parent().add_child(clone)
 		var tween = create_tween()
 		tween.tween_method(
-			func(value): clone.material.set_shader_parameter("burn_percentage", value),
+			func(value): clone.set_burn_percentage(value),
 			0.0, 1.0, 0.5
 		)
 		tween.finished.connect(func(): clone.queue_free())
@@ -67,7 +66,7 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 func init_clone(predecessor: BattleCharacter) -> void:
 	ship_explosion = null
 	team_id = predecessor.team_id
-	$skin.material.set_shader_parameter("team_color", $team.color)
+	skin_layers = predecessor.skin_layers # set skin from predecessor(_ready will construct the skin)
 
 func is_alive() -> bool:
 	return self.has_node("health") and $health.is_alive
@@ -135,16 +134,10 @@ func _process(_delta):
 
 	# Handle when player timeline gets different from characters timeline
 	if not in_battle() and was_in_battle:
-		create_tween().tween_method(
-			func(value): $skin.material.set_shader_parameter("burn_percentage", value),
-			0.0, 1.0, 0.5
-		)
+		create_tween().tween_method(func(value): $skin.set_burn_percentage(value), 0.0, 1.0, 0.5)
 		was_in_battle = false
 	elif in_battle() and not was_in_battle:
-		create_tween().tween_method(
-			func(value): $skin.material.set_shader_parameter("burn_percentage", value),
-			1.0, 0.0, 0.5
-		)
+		create_tween().tween_method(func(value): $skin.set_burn_percentage(value), 1.0, 0.0, 0.5)
 		was_in_battle = true
 
 	# Handle explosion when ship is destroyed

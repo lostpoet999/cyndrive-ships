@@ -1,11 +1,11 @@
-[gd_scene load_steps=31 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=26 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
-[ext_resource type="Shader" uid="uid://c66rqecsnsqsu" path="res://shaders/implode.gdshader" id="3_0dpix"]
-[ext_resource type="Texture2D" uid="uid://cm6fobaf78bk1" path="res://textures/battle_ship.png" id="3_a5ia6"]
 [ext_resource type="Script" uid="uid://upxd16rpbdyu" path="res://scripts/equipment/team.gd" id="3_j5io8"]
+[ext_resource type="Texture2D" uid="uid://boy2t7aons7q8" path="res://icon.svg" id="3_u0pwc"]
 [ext_resource type="Script" uid="uid://biil32ytxamuc" path="res://scripts/equipment/laser_beam_ray.gd" id="4_2t4uj"]
+[ext_resource type="Script" uid="uid://cb5wlskdaf6ig" path="res://scripts/skin.gd" id="4_u0pwc"]
 [ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle/battle_input_map.gd" id="6_pscbx"]
 [ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="7_1bsqs"]
 [ext_resource type="AudioStream" uid="uid://bq8ahqkx2klan" path="res://audio/laserShoot.wav" id="7_lagn4"]
@@ -25,37 +25,6 @@
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
 radius = 15.0
 height = 60.0
-
-[sub_resource type="Curve" id="Curve_0dpix"]
-_data = [Vector2(0, 0), 0.0, 0.0, 0, 0, Vector2(0.44708997, 0.1048305), 0.44892073, 0.44892073, 0, 0, Vector2(1, 1), 0.0, 0.0, 0, 0]
-point_count = 3
-
-[sub_resource type="CurveTexture" id="CurveTexture_0dpix"]
-curve = SubResource("Curve_0dpix")
-
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_0dpix"]
-noise_type = 5
-frequency = 0.0188
-fractal_type = 2
-fractal_octaves = 2
-fractal_lacunarity = 2.525
-fractal_gain = 2.0
-domain_warp_type = 1
-
-[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_2hyy3"]
-noise = SubResource("FastNoiseLite_0dpix")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_0dpix"]
-shader = ExtResource("3_0dpix")
-shader_parameter/noise = SubResource("NoiseTexture2D_2hyy3")
-shader_parameter/burn_color = Color(1, 1, 0, 1)
-shader_parameter/team_color = Color(0.48178947, 0.48178947, 0.48178947, 1)
-shader_parameter/burn_percentage = 0.0
-shader_parameter/burn_curve = SubResource("CurveTexture_0dpix")
-shader_parameter/burn_threshold = 1.0
-shader_parameter/burn_flame_supression = 0.50000002375
-shader_parameter/pixel_scale = 2.0000000475
-shader_parameter/color_aberration = 0.150000007125
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_i0gp7"]
 streams_count = 5
@@ -78,6 +47,7 @@ stream_3/stream = ExtResource("20_4lh0q")
 
 [node name="character" type="CharacterBody2D"]
 script = ExtResource("1_gqnfm")
+color = Color(0, 0, 0, 0)
 
 [node name="collision_shape" type="CollisionShape2D" parent="."]
 rotation = 1.5708
@@ -90,13 +60,11 @@ stop_resistance = 100
 booster_strength = 50.0
 momentum_dampener = 0.85
 
-[node name="skin" type="Sprite2D" parent="."]
-material = SubResource("ShaderMaterial_0dpix")
-position = Vector2(1, -1.9073486e-06)
-rotation = 1.5708
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("3_a5ia6")
-region_rect = Rect2(0, 0, 6000, 3000)
+[node name="skin" type="Node2D" parent="."]
+script = ExtResource("4_u0pwc")
+
+[node name="placeholder" type="Sprite2D" parent="skin"]
+texture = ExtResource("3_u0pwc")
 
 [node name="team" type="Node2D" parent="."]
 script = ExtResource("3_j5io8")

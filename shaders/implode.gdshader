@@ -12,6 +12,10 @@ uniform float pixel_scale: hint_range(1., 100.);
 uniform float color_aberration: hint_range(0.0, 0.2) = 0.1;
 
 void fragment() {
+	if (1.0 == burn_percentage) {
+		discard;
+	}
+
 	vec2 pixel_uv = floor(UV * pixel_scale) / pixel_scale;
 	vec2 large_pixel_uv = floor(UV * pixel_scale * 4.) / pixel_scale / 4.;
 	vec4 skin_color;
