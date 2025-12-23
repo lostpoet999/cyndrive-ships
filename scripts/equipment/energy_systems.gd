@@ -3,15 +3,24 @@ class_name EnergySystems extends Node
 @export var max_boost: int = 10
 @export var max_laser: int = 10
 
+func temporal_snapshot() -> Dictionary:
+	return { "laser": laser_energy_remaining, "boost": boost_energy_remaining }
+
+func temporal_correction(snapshot: Dictionary) -> void:
+	if "laser" in snapshot:
+		laser_energy_remaining = snapshot["laser"]
+	if "boost" in snapshot:
+		boost_energy_remaining = snapshot["boost"]
+
 func _ready() -> void:
-	laser_energy_updated.emit(boost_energy_remaining)
-	boost_energy_updated.emit(laser_energy_remaining)
+	laser_energy_updated.emit(laser_energy_remaining)
+	boost_energy_updated.emit(boost_energy_remaining)
 
 func reset() -> void:
 	boost_energy_remaining = max_boost
 	laser_energy_remaining = max_laser
-	laser_energy_updated.emit(boost_energy_remaining)
-	boost_energy_updated.emit(laser_energy_remaining)
+	laser_energy_updated.emit(laser_energy_remaining)
+	boost_energy_updated.emit(boost_energy_remaining)
 
 # called from the function by the same name in the battle_character script
 var is_boosting: bool

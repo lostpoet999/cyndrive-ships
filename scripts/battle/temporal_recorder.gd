@@ -84,8 +84,10 @@ func _physics_process(_delta: float) -> void:
 		current_snapshot["linear_velocity"] = target.get_linear_velocity()
 	if "angular_velocity" in target:
 		current_snapshot["angular_velocity"] = target.get_angular_velocity()
-	if target.has_node("health"):
-		current_snapshot["health"] = target.get_node("health").value()
 	if target.has_node("controller"):
 		current_snapshot["internal_force"] = target.get_node("controller").internal_force
+	if target.has_node("health"):
+		current_snapshot["health"] = target.get_node("health").value()
+	if target.has_node("energy_systems"):
+		current_snapshot["energy"] = target.get_node("energy_systems").temporal_snapshot()
 	msec_records[last_triggered] = current_snapshot

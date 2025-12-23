@@ -38,6 +38,9 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 			resurrect_me()
 			was_alive = $health.is_alive
 
+	if "energy" in snapshot and has_node("energy_systems"):
+		get_node("energy_systems").temporal_correction(snapshot["energy"])
+
 	var correction_length = (snapshot["transform"].get_origin() - get_transform().get_origin()).length()
 	var tween_length = max(0., over_time_msec) / 1000.;
 	if "internal_force" in snapshot:
