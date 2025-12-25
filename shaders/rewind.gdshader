@@ -64,8 +64,6 @@ void fragment() {
 	}
 
 	// Determine the offset based on time / rewind
-	// TODO: sometimes it restarts/jumps abruptly
-	//float manual_angle_offset = float(int(-TIME * 10000.) % int(20000. * PI)) / 10000.;
 	float manual_angle_offset = float(int(-rewind_amount * 10000.) % int(20000. * PI)) / 10000.;
 
 	// Determine ring start angle
@@ -97,7 +95,6 @@ void fragment() {
 			)
 		)
 	) {
-		//TODO: explain/document magic numbers
 		float pixel_alpha = rewind_intensity - (ring_distance - distance_from_circle_center) / ring_width;
 		clock_color = vec4(
 			mix(color_1, color_2, ring_width / avg_ring_width).rgb,

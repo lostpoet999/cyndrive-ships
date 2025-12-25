@@ -7,22 +7,6 @@ static var instance: BattleTimeline:
 
 enum TimeFlow {FORWARD = 1, BACKWARD = -1}
 
-"""
-Linearly interpolates between two motion entries based on the given weight.
-"""
-#TODO: Is this the best place for this?
-static func lerp_motion(a: Dictionary, b: Dictionary, weight_b: float) -> Dictionary:
-	var result = {}
-	if "transform" in a and "transform" in b:
-		result["transform"] = lerp(a["transform"], b["transform"], weight_b)
-	if "velocity" in a and "velocity" in b:
-		result["velocity"] = lerp(a["velocity"], b["velocity"], weight_b)
-	if "linear_velocity" in a and "linear_velocity" in b:
-		result["linear_velocity"] = lerp(a["linear_velocity"], b["linear_velocity"], weight_b)
-	if "angular_velocity" in a and "angular_velocity" in b:
-		result["angular_velocity"] = lerp(a["angular_velocity"], b["angular_velocity"], weight_b)
-	return result
-
 signal round_reset
 signal rewind_started
 signal rewind_stopped

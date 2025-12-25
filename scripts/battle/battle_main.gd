@@ -201,10 +201,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func player_defeated() -> bool:
 	return (
 		not $combatants/player_carrier.is_alive()
-		or (
-			false # TODO: Laupeerium reserves are empty
-			and not $combatants/character.is_alive()
-		)
+		or (0. == current_laupeerium and not $combatants/character.is_alive())
 	)
 
 func are_you_winning_son() -> bool:

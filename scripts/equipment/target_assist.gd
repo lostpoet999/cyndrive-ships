@@ -28,13 +28,12 @@ func highlight_centermost():
 		target.set_highlight(true)
 		highligthed_body = target
 		
-func _on_body_entered(body):
-	#TODO: what should even be the value of this entry
+func _on_body_entered(body: Node2D) -> void:
 	if body and body.has_method("set_highlight"):
-		contained_bodies[body] = body.get_global_position()
+		contained_bodies[body] = BattleTimeline.instance.time_msec()
 		highlight_centermost()
 
-func _on_body_exited(body):
+func _on_body_exited(body: Node2D) -> void:
 	contained_bodies.erase(body)
 	if(body.has_method("set_highlight")):
 		body.set_highlight(false)
