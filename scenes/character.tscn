@@ -55,8 +55,6 @@ shape = SubResource("CapsuleShape2D_k8udw")
 
 [node name="controller" type="Node2D" parent="."]
 script = ExtResource("1_4dcfn")
-start_resistance = 2
-stop_resistance = 100
 booster_strength = 50.0
 momentum_dampener = 0.85
 
@@ -69,8 +67,7 @@ texture = ExtResource("3_u0pwc")
 [node name="team" type="Node2D" parent="."]
 script = ExtResource("3_j5io8")
 
-[node name="laser_beam" type="RayCast2D" parent="."]
-target_position = Vector2(5000, 0)
+[node name="laser_beam" type="Node2D" parent="."]
 script = ExtResource("4_2t4uj")
 
 [node name="sound" type="AudioStreamPlayer2D" parent="laser_beam"]
@@ -80,7 +77,8 @@ attenuation = 0.3186402
 max_polyphony = 5
 
 [node name="beam_line" type="Line2D" parent="laser_beam"]
-points = PackedVector2Array(2, 0, 12, 0)
+top_level = true
+points = PackedVector2Array(0, 0, 100, 0)
 width = 0.0
 default_color = Color(0.878431, 0, 0, 1)
 

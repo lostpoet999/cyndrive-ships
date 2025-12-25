@@ -222,15 +222,15 @@ func resume_control() -> void:
 func _unhandled_input(inev: InputEvent) -> void:
 	if not accepts_inputs:
 		return;
-	var action = BattleInputMap.get_action(get_viewport(), get_global_position(), inev)
+	var action = BattleInputMap.get_action(get_viewport(), inev)
 	if(control_enabled):
 		if (has_node("energy_systems")):	
 			action["boost"] = action["boost"] and $energy_systems.has_boost_energy()
-			action["pewpew"] = action["pewpew"] and $energy_systems.has_laser_energy()
+			if not $energy_systems.has_laser_energy() and "pewpew" in action:
+				action.erase("pewpew")
 		
-		if $"../../target_assist".is_target_locked():
-			var assisted_direction = ($"../../target_assist".get_current_target_position() - get_global_position()).normalized()
-			action["cursor"] = assisted_direction
+		if "pewpew" in action and $"../../target_assist".is_target_locked():
+			action["pewpew"] = $"../../target_assist".get_current_target_position()
 			
 		# move camera lightly on boost  
 		if action["boost"]:

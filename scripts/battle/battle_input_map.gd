@@ -16,10 +16,9 @@ static func xform(mat, vec):
 Provides the processed control output in a form of a dictionary from the provided data and user input events
 Output format is the following: 
 	action["intent"]: vector: intent of user control in 2D space (up, down, left right). Vector values are either -1, 0 or 1
-	action["cursor"]: vector: normalized direction vector the player points to from the controlled ship
-	action["pewpew"]: boolean: true if player shoots laser
+	action["pewpew"]: (if present) the global position where the laser points to when fired
 """
-static func get_action(viewport, subject_global_position, input_event):
+static func get_action(viewport, input_event):
 	var action = Dictionary()
 	var intent_direction = Vector2(
 		(-1. if input_event.is_action_pressed("left") else 0. + 1. if input_event.is_action_pressed("right") else 0.),\
@@ -33,11 +32,7 @@ static func get_action(viewport, subject_global_position, input_event):
 	action["intent"] = intent_direction
 	if(input_event.is_action_pressed("pewpew")):
 		var global_mouse_pos = xform(viewport.get_canvas_transform().affine_inverse(), viewport.get_mouse_position())
-		action["cursor"] = (global_mouse_pos - subject_global_position).normalized()
-		action["pewpew"] = true
-	else:
-		action["cursor"] = Vector2()
-		action["pewpew"] = false
+		action["pewpew"] = global_mouse_pos
 		
 	if input_event.is_action_pressed("boost"):
 		action["boost"] = true

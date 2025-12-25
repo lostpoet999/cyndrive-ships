@@ -2,8 +2,8 @@ extends Node2D
 
 @export var runs_per_second: float = 5.
 @export var max_distance_from_target: float = 10.
-@export var laser_aim: float = 0.85
-@export var laser_haste: float = 0.615
+@export var laser_aim: float = 1.5
+@export var laser_haste: float = 3.615
 @export var difficuilty_laser_frequency_sec: float = 0.8
 @export var attack_range: float = 2000.
 @export var goldfish_memory_sec: float = 1.
@@ -12,9 +12,9 @@ extends Node2D
 
 @onready var character: BattleCharacter = get_parent()
 var position_moving_avg: Vector2 = get_global_position()
+var target_moving_avg: Vector2 = Vector2()
 var time_until_script_execution = 1. / runs_per_second
 var chosen_target: CharacterBody2D
-var laser_direction: Vector2
 var enabled: bool = true
 var time_since_laser: float = 0.
 var distance_to_target: float = 0.
@@ -23,7 +23,6 @@ var time_until_target_drop: float = goldfish_memory_sec
 func stop() -> void:
 	enabled = false
 	chosen_target = null
-	laser_direction = Vector2()
 	time_since_laser = 0.
 
 func resume() -> void:
@@ -35,12 +34,10 @@ func _physics_process(delta: float) -> void:
 
 	if not enabled or time_until_script_execution >= 0:
 		return
+
 	time_until_script_execution = 1. / runs_per_second
 	var action = Dictionary()
 	action["intent"] = Vector2()
-	action["cursor"] = Vector2()
-	action["pewpew"] = false
-	action["boost"] = false
 
 	var combatants = character.get_parent()
 	var to_target : Vector2
@@ -82,6 +79,7 @@ func _physics_process(delta: float) -> void:
 				chosen_target = random_target
 				distance_to_target = vector_to_target.length()
 				time_until_target_drop = goldfish_memory_sec
+				target_moving_avg = random_target.get_global_position()
 			else: # In case the random target is not in line of sight, do not cache the raycast results
 				raycast_result = null
 
@@ -89,7 +87,7 @@ func _physics_process(delta: float) -> void:
 	var target_is_alive = false
 	if chosen_target != null and "in_battle" in chosen_target and chosen_target.in_battle():
 		target_is_alive = true
-		to_target = ( chosen_target.get_global_position() - character.get_global_position() )
+		to_target = chosen_target.get_global_position() - character.get_global_position()
 		distance_to_target = to_target.length()
 	else: 
 		to_target = ( character.spawn_position - character.get_global_position() )
@@ -100,35 +98,37 @@ func _physics_process(delta: float) -> void:
 		character.get_node("controller").top_speed, 0.,
 		max_distance_from_target / distance_to_target
 	)
-	laser_direction = lerp(laser_direction, to_target, laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
 
 	# See if there's anything in the way to the target
-	var ray_to_target = laser_direction * distance_to_target
-	if raycast_result == null:
-		raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
-			character.get_global_position(),
-			character.get_global_position() + ray_to_target
-		))
-	var target_acquired = (
-		( # Collsiion detected at gunpoint, and the target is an enemy
-			"collider" in raycast_result and raycast_result.collider.has_node("team")
-			and raycast_result.collider.get_node("team").is_enemy(character.get_node("team"))
-		) or ( # Becuase the Carriers might have more complex geometry, the raycasts don't work on them FOR SOME REASON >:C
-			null != chosen_target and chosen_target.is_in_group("complex_collision_shapes")
-			# Workaround: the chosen target is a carrier and the gunpoint points within its radius
-			and (character.get_global_position() + ray_to_target - chosen_target.get_global_position()).length() <= chosen_target.approx_size
-			and ( # and Either there's no raycast result, or it's further away than the actual target
-				not "collider" in raycast_result
-				or distance_to_target <= (raycast_result.collider.get_global_position() - character.get_global_position()).length()
+	var target_acquired = false
+	var ray_to_target = (target_moving_avg - character.get_global_position())
+	if chosen_target != null:
+		target_moving_avg = lerp(target_moving_avg, chosen_target.get_global_position(), laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
+		if raycast_result == null:
+			raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
+				character.get_global_position(),
+				character.get_global_position() + ray_to_target
+			))
+		target_acquired = (
+			( # Collsiion detected at gunpoint, and the target is an enemy
+				"collider" in raycast_result and raycast_result.collider.has_node("team")
+				and raycast_result.collider.get_node("team").is_enemy(character.get_node("team"))
+			) or ( # Becuase the Carriers might have more complex geometry, the raycasts don't work on them FOR SOME REASON >:C
+				null != chosen_target and chosen_target.is_in_group("complex_collision_shapes")
+				# Workaround: the chosen target is a carrier and the gunpoint points within its radius
+				and (character.get_global_position() + ray_to_target - chosen_target.get_global_position()).length() <= chosen_target.approx_size
+				and ( # and Either there's no raycast result, or it's further away than the actual target
+					not "collider" in raycast_result
+					or distance_to_target <= (raycast_result.collider.get_global_position() - character.get_global_position()).length()
+				)
 			)
 		)
-	)
 
-	action["cursor"] = laser_direction
-	action["pewpew"] = target_acquired and target_is_alive and time_since_laser > difficuilty_laser_frequency_sec
+	if target_acquired and target_is_alive and time_since_laser > difficuilty_laser_frequency_sec:
+		action["pewpew"] = chosen_target.get_global_position()
 	action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
 
-	if action["pewpew"]:
+	if "pewpew" in action:
 		time_since_laser = 0
 
 	# Detect if the ship is stuck, and apply boost to break free
