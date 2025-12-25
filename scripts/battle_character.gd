@@ -231,6 +231,7 @@ func _unhandled_input(inev: InputEvent) -> void:
 		
 		if "pewpew" in action and $"../../target_assist".is_target_locked():
 			action["pewpew"] = $"../../target_assist".get_current_target_position()
+			action["pewpew_target"] =  $"../../target_assist".get_current_target()
 			
 		# move camera lightly on boost  
 		if action["boost"]:
@@ -249,6 +250,16 @@ func _unhandled_input(inev: InputEvent) -> void:
 	process_input_action(action)
 
 func process_input_action(action: Dictionary) -> void:
+	# For targets representing past versions ( e.g. player previous round ), positions may mismatch slightly
+	# because of the inaccuracies in the replay system and floating point inaccuracies of the physics system
+	# Should the target be slightly off, but still around the actual laser position, the position is corrected
+	# so past versions of the players can hit their targets more accurately
+	if (
+		"pewpew_target" in action
+		and (action["pewpew_target"].get_global_position() - action["pewpew"]).length() < action["pewpew_target"].approx_size * 3
+	):
+		action["pewpew"] = action["pewpew_target"].get_global_position()
+
 	$controller.process_input_action(action)
 	$laser_beam.process_input_action(action)
 	if has_node("temporal_recorder"):

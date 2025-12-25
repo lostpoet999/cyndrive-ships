@@ -1,20 +1,22 @@
 extends Area2D
 
-var contained_bodies = Dictionary()
-var highligthed_body
+var contained_bodies: Dictionary = {}
+var highligthed_body: Node2D
 
-func is_target_locked():
+func is_target_locked() -> bool:
 	return 0 < contained_bodies.size()
 
-func get_current_target_position():
+func get_current_target() -> Node2D:
+	return highligthed_body
+
+func get_current_target_position() -> Vector2:
 	if highligthed_body:
 		return highligthed_body.get_global_position()
 	return get_global_position()
 
-func highlight_centermost():
+func highlight_centermost() -> void:
 	if contained_bodies.is_empty():
 		return
-		
 	var target = contained_bodies.keys().front()
 	for body in contained_bodies:
 		if (get_global_position() - body.get_global_position()).length() \

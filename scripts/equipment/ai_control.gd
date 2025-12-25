@@ -126,6 +126,7 @@ func _physics_process(delta: float) -> void:
 
 	if target_acquired and target_is_alive and time_since_laser > difficuilty_laser_frequency_sec:
 		action["pewpew"] = chosen_target.get_global_position()
+		action["pewpew_target"] = chosen_target
 	action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
 
 	if "pewpew" in action:

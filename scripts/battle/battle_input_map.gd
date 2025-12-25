@@ -17,6 +17,7 @@ Provides the processed control output in a form of a dictionary from the provide
 Output format is the following: 
 	action["intent"]: vector: intent of user control in 2D space (up, down, left right). Vector values are either -1, 0 or 1
 	action["pewpew"]: (if present) the global position where the laser points to when fired
+	action["pewpew_target"]: (if present) the target object to which the laser is supposed to be fired
 """
 static func get_action(viewport, input_event):
 	var action = Dictionary()
