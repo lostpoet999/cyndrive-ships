@@ -15,6 +15,10 @@ run/main_scene="uid://b3trh6sc7bkeq"
 config/features=PackedStringArray("4.5", "GL Compatibility")
 config/size/mode=0
 
+[autoload]
+
+FeatureFlags="*res://scripts/feature_flags.gd"
+
 [display]
 
 window/size/viewport_width=1920

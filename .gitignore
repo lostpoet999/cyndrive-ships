@@ -11,6 +11,16 @@ export_credentials.cfg
 # Imported translations (automatically generated from CSV files)
 *.translation
 
+# IDE
+.vscode/
+.claude/
+
+# Local project documentation
+CLAUDE.md
+
+# Feature flags (local config)
+feature_flags.json
+
 # Mono-specific ignores
 .mono/
 data_*/
