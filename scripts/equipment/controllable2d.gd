@@ -93,20 +93,22 @@ func stop() -> void:
 	enabled = false
 	intent_force = Vector2()
 	internal_force = Vector2()
+	last_intent = Vector2()
 
+var last_intent: Vector2 = Vector2()
 func process_input_action(action: Dictionary) -> void:
 	intent_direction += action["intent"]
 	intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
+	if 0. < action["intent"].length():
+		last_intent = intent_direction
 	if "boost" in action and action["boost"]:
-		if 0. < action["intent"].length():
-			intent_direction = action["intent"]
-		internal_force = intent_direction * top_speed * booster_strength
+		internal_force = (intent_direction + last_intent) * top_speed * booster_strength
 
 @onready var last_position = get_global_position()
 func _physics_process(_delta):
 	if not enabled or BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.BACKWARD:
 		return
-	
+
 	var previous_intent = intent_force * momentum_dampener
 	var current_intent = Vector2()
 	var x

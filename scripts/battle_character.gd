@@ -207,25 +207,35 @@ var control_enabled = false
 func accepts_user_input(yesno):
 	accepts_inputs = yesno
 
+var was_boosting = false
 func pause_control() -> void:
 	control_enabled = false
+	was_boosting = is_boosting
+	is_boosting = false
 	$controller.stop()
 	if has_node("ai_control"):
 		$ai_control.stop()
 
 func resume_control() -> void:
+	is_boosting = was_boosting
 	control_enabled = true
 	$controller.start()
 	if has_node("ai_control"):
 		$ai_control.resume()
 
+var is_boosting: bool = false
 func _unhandled_input(inev: InputEvent) -> void:
 	if not accepts_inputs:
 		return;
 	var action = BattleInputMap.get_action(get_viewport(), inev)
 	if(control_enabled):
-		if (has_node("energy_systems")):	
-			action["boost"] = action["boost"] and $energy_systems.has_boost_energy()
+		if (has_node("energy_systems")):
+			is_boosting = (
+				(is_boosting or ("boost" in action and action["boost"]))
+				and not  "boost_released" in action
+			)
+			action.erase("boost_released")
+			action["boost"] = is_boosting and $energy_systems.has_boost_energy()
 			if not $energy_systems.has_laser_energy() and "pewpew" in action:
 				action.erase("pewpew")
 		
@@ -255,7 +265,7 @@ func process_input_action(action: Dictionary) -> void:
 	# Should the target be slightly off, but still around the actual laser position, the position is corrected
 	# so past versions of the players can hit their targets more accurately
 	if (
-		"pewpew_target" in action
+		"pewpew" in action and "pewpew_target" in action
 		and (action["pewpew_target"].get_global_position() - action["pewpew"]).length() < action["pewpew_target"].approx_size * 3
 	):
 		action["pewpew"] = action["pewpew_target"].get_global_position()

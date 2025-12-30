@@ -26,7 +26,7 @@ func reset() -> void:
 var is_boosting: bool
 var is_lasering: bool
 func process_input_action(action) -> void:
-	is_boosting = action["boost"]
+	is_boosting = "boost" in action and action["boost"]
 	is_lasering = "pewpew" in action
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.

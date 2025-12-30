@@ -23,7 +23,9 @@ func _process(_delta: float) -> void:
 		# update stored actions
 		while not usec_records.is_empty() and usec_records.keys().back() > BattleTimeline.instance.time_usec():
 			if target.has_node("controller"):
-				target.process_input_action(usec_records[usec_records.keys().back()])
+				var snapshot_to_apply = usec_records[usec_records.keys().back()]
+				snapshot_to_apply.erase("boost")
+				target.process_input_action(snapshot_to_apply)
 			usec_records.erase(usec_records.keys().back())
 
 		# update stored msec entries
