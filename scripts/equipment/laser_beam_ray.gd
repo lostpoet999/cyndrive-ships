@@ -10,8 +10,8 @@ func process_input_action(action: Dictionary) -> void:
 		pewpew_ready = false
 
 func _physics_process(_delta):
+	$beam_line.points[0] = get_global_position()
 	if pewpew:
-		$beam_line.points[0] = get_global_position()
 		$beam_line.points[1] = get_global_position() + (target_position - get_global_position()) * 5000.
 		var space_state = get_world_2d().direct_space_state
 		var laser_raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
