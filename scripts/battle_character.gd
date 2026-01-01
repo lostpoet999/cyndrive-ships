@@ -164,7 +164,16 @@ func _process(_delta):
 		ship_explosion.queue_free()
 		ship_explosion = null
 
-func accept_damage(strength):
+@export var laser_strength: float = 1.
+@export var entanglement_chance: float = 0.05
+var entangled: bool = false
+func accept_damage(strength: float, source: BattleCharacter = null) -> void:
+	if( # Damage from the main controlled character may induce temporal entanglement
+		source != null and source.name == "character" and name != "characters"
+		and entanglement_chance >= randf()
+		and not has_node("replayer")
+	):
+		entangled = true
 	$health.accept_damage(strength)
 	health_changed.emit($health.health / starting_health)
 	if $health.health > 3:

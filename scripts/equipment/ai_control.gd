@@ -4,7 +4,7 @@ extends Node2D
 @export var max_distance_from_target: float = 10.
 @export var laser_aim: float = 1.5
 @export var laser_haste: float = 3.615
-@export var difficuilty_laser_frequency_sec: float = 0.8
+@export var difficuilty_laser_frequency_sec: float = 1.8
 @export var attack_range: float = 2000.
 @export var goldfish_memory_sec: float = 1.
 @export var stuck_sec_threshold = 3.
@@ -20,6 +20,10 @@ var time_since_laser: float = 0.
 var distance_to_target: float = 0.
 var time_until_target_drop: float = goldfish_memory_sec
 
+var permanently_disabled: bool = false
+func set_disabled(yesno: bool) -> void:
+	permanently_disabled = yesno
+
 func stop() -> void:
 	enabled = false
 	chosen_target = null
@@ -32,7 +36,7 @@ func _physics_process(delta: float) -> void:
 	time_until_script_execution -= delta
 	time_since_laser += delta
 
-	if not enabled or time_until_script_execution >= 0:
+	if permanently_disabled or not enabled or time_until_script_execution >= 0:
 		return
 
 	time_until_script_execution = 1. / runs_per_second

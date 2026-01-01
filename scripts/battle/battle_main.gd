@@ -55,6 +55,20 @@ func restart_round() -> void:
 	create_new_puppet($combatants/character)
 	$GUI/rewind_effects.set_visible(true)
 
+	# Handle temporal entanglement for afgfected ships
+	for c in $combatants.get_children():
+		if "entangled" in c and c.entangled and c.name != "character" and not c.has_node("replayer"):
+			var records = c.get_node("temporal_recorder").stop_recording()
+			var replayer = Node2D.new()
+			replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
+			replayer.name = "replayer"
+			replayer.usec_records = records["actions"]
+			replayer.msec_records = records["motion"]
+			$timeline.connect("round_reset", replayer.reset)
+			$timeline.connect("round_reset", replayer.start_replay)
+			replayer.reset()
+			c.add_child(replayer)
+			c.get_node("ai_control").set_disabled(true)
 	# Move the player to its spawn position
 	var respawn_time = 1.
 	var player_move_tween = create_tween()
@@ -145,7 +159,7 @@ func _process(delta):
 			$GUI/rewind_effects.set_visible(false)
 
 func create_new_puppet(predecessor):
-	#Initialize the new clone/puppet
+	# Initialize the new clone/puppet
 	var records = predecessor.get_node("temporal_recorder").stop_recording()
 	var puppet = character_template.instantiate();
 	var replayer = Node2D.new()

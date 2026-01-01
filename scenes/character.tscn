@@ -1,4 +1,4 @@
-[gd_scene load_steps=26 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=27 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
@@ -21,6 +21,7 @@
 [ext_resource type="AudioStream" uid="uid://besa8dwtnwqwy" path="res://audio/explosion_002.wav" id="19_bj47h"]
 [ext_resource type="AudioStream" uid="uid://bcnnssuecafi" path="res://audio/explosion_003.wav" id="20_4lh0q"]
 [ext_resource type="AudioStream" uid="uid://bokt2np2jc03c" path="res://audio/engine_booster.wav" id="21_cicko"]
+[ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/battle/temporal_recorder.gd" id="22_bj47h"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
 radius = 15.0
@@ -141,3 +142,7 @@ stream = SubResource("AudioStreamRandomizer_7qyni")
 
 [node name="booster_sound" type="AudioStreamPlayer2D" parent="."]
 stream = ExtResource("21_cicko")
+
+[node name="temporal_recorder" type="Node2D" parent="."]
+script = ExtResource("22_bj47h")
+triggers_per_second = 20
