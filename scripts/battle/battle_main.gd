@@ -8,6 +8,7 @@ extends Node2D
 var init_countdown_sec: float = 2.
 var current_laupeerium: float = starting_laupeerium
 var living_team_members: Dictionary = {}
+var god_mode_active: bool = false
 
 func _ready():
 	laupeerium_bar.bars_remaining = UIEnergyBar.max_bars
@@ -193,6 +194,12 @@ func create_new_puppet(predecessor):
 
 func _unhandled_input(event: InputEvent) -> void:
 	var just_pressed = event.is_pressed() and not event.is_echo()
+
+	# God mode toggle (F9)
+	if FeatureFlags.is_enabled("god_mode"):
+		if event is InputEventKey and event.physical_keycode == KEY_F9 and just_pressed:
+			god_mode_active = !god_mode_active
+			$GUI/god_mode_label.visible = god_mode_active
 
 	if event.is_action_pressed("replay") and just_pressed:
 		if (Time.get_ticks_msec() - reverse_last_tap_at) < tap_interval_msec:

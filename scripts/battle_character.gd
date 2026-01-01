@@ -168,6 +168,13 @@ func _process(_delta):
 @export var entanglement_chance: float = 0.05
 var entangled: bool = false
 func accept_damage(strength: float, source: BattleCharacter = null) -> void:
+	# God mode - player team takes no damage when enabled
+	if FeatureFlags.is_enabled("god_mode"):
+		var battle_main = get_tree().current_scene
+		if battle_main and "god_mode_active" in battle_main and battle_main.god_mode_active:
+			if $team.team_id == 1:
+				return
+
 	if( # Damage from the main controlled character may induce temporal entanglement
 		source != null and source.name == "character" and name != "characters"
 		and entanglement_chance >= randf()

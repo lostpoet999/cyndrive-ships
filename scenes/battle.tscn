@@ -295,6 +295,14 @@ offset_right = 40.0
 offset_bottom = 23.0
 text = "666 fps"
 
+[node name="god_mode_label" type="Label" parent="GUI"]
+visible = false
+modulate = Color(1, 0.8, 0, 0.7)
+offset_top = 23.0
+offset_right = 80.0
+offset_bottom = 46.0
+text = "GOD MODE"
+
 [node name="status_padding" type="MarginContainer" parent="GUI"]
 anchors_preset = 3
 anchor_left = 1.0

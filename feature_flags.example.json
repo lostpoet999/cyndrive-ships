@@ -4,5 +4,10 @@
 	"example_feature": {
 		"enabled": false,
 		"description": "Example flag - replace with your own"
+	},
+
+	"god_mode": {
+		"enabled": false,
+		"description": "Enable god mode toggle (F9 key) - player takes no damage"
 	}
 }
