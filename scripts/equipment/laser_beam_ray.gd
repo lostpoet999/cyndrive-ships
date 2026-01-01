@@ -21,7 +21,7 @@ func _physics_process(_delta):
 			$sound.play()
 			var victim = laser_raycast_result.collider
 			if victim.has_method("accept_damage"):
-				victim.accept_damage(1.)
+				victim.accept_damage(1., get_parent())
 			$beam_line.points[1] = laser_raycast_result.position
 		var tween = create_tween()
 		tween.tween_property($beam_line, "width", 20, 0.05)
