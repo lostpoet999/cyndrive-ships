@@ -25,9 +25,12 @@ func reset() -> void:
 # called from the function by the same name in the battle_character script
 var is_boosting: bool
 var is_lasering: bool
+var pending_energy_cost: int = 1
 func process_input_action(action) -> void:
 	is_boosting = "boost" in action and action["boost"]
 	is_lasering = "pewpew" in action
+	if is_lasering:
+		pending_energy_cost = action.get("energy_cost", 1)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 var was_lasering = false
@@ -36,7 +39,7 @@ func _process(delta: float) -> void:
 	if is_boosting: _drain_boost(delta)
 	else: _recharge_boost(delta)
 	
-	if is_lasering and not was_lasering: _update_laser_energy(-1)
+	if is_lasering and not was_lasering: _update_laser_energy(-pending_energy_cost)
 	else: _recharge_laser(delta)
 	
 	was_lasering = is_lasering
@@ -99,3 +102,6 @@ func _recharge_laser(delta: float) -> void:
 #Check
 func has_laser_energy() -> bool:
 	return laser_energy_remaining > 0
+
+func has_laser_energy_for(cost: int) -> bool:
+	return laser_energy_remaining >= cost

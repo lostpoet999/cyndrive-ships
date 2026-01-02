@@ -9,5 +9,10 @@
 	"god_mode": {
 		"enabled": false,
 		"description": "Enable god mode toggle (F9 key) - player takes no damage"
+	},
+
+	"disable_ai": {
+		"enabled": false,
+		"description": "Disable all enemy AI - useful for testing weapons"
 	}
 }

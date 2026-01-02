@@ -36,6 +36,10 @@ func _physics_process(delta: float) -> void:
 	time_until_script_execution -= delta
 	time_since_laser += delta
 
+	# Feature flag to disable all AI for testing
+	if FeatureFlags.is_enabled("disable_ai"):
+		return
+
 	if permanently_disabled or not enabled or time_until_script_execution >= 0:
 		return
 

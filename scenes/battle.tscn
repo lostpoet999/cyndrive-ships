@@ -303,6 +303,13 @@ offset_right = 80.0
 offset_bottom = 46.0
 text = "GOD MODE"
 
+[node name="weapon_label" type="Label" parent="GUI"]
+modulate = Color(0.6, 0.9, 1, 0.8)
+offset_top = 46.0
+offset_right = 120.0
+offset_bottom = 69.0
+text = "[1] LASER"
+
 [node name="status_padding" type="MarginContainer" parent="GUI"]
 anchors_preset = 3
 anchor_left = 1.0

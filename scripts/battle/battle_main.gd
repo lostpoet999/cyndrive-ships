@@ -27,7 +27,11 @@ func _ready():
 
 	for debris in $debris.get_children():
 		$timeline.connect("round_reset", debris.respawn)
-	
+
+	# Connect weapon slot signal for UI updates
+	if $combatants/character.has_node("weapon_slot"):
+		$combatants/character/weapon_slot.weapon_changed.connect(_on_weapon_changed)
+
 var debug_lines = []
 func display_line(from: Vector2, to: Vector2, color: Color) -> void:
 	debug_lines.push_back({"from": from, "to": to, "color": color})
@@ -255,3 +259,12 @@ func _on_battle_character_resurrected(character: BattleCharacter) -> void:
 	if $combatants/character.is_alive():
 		$GUI/restart_round_panel.set_visible(false)
 	living_team_members[character.get_node("team").team_id] += 1
+
+func _on_weapon_changed(slot: int) -> void:
+	var weapon_names = {
+		1: "[1] LASER",
+		2: "[2] CHAIN",
+		3: "[3] ---",
+		4: "[4] ---"
+	}
+	$GUI/weapon_label.text = weapon_names.get(slot, "[?] ???")
