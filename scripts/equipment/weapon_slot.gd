@@ -2,14 +2,14 @@ class_name WeaponSlot extends Node
 
 signal weapon_changed(slot: int)
 
-const MAX_SLOTS = 4
+const MAX_SLOTS: int = 4
 var current_slot: int = 1  # 1-indexed to match keys
 
-var weapons = {
+var weapons: Dictionary = {
 	1: { "name": "laser_beam", "energy_cost": 1 },
 	2: { "name": "chain_lightning", "energy_cost": 3 },
-	3: null,
-	4: null,
+	3: {},
+	4: {},
 }
 
 func select_slot(slot: int) -> void:

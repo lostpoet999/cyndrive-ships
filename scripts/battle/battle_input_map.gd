@@ -42,5 +42,12 @@ static func get_action(viewport, input_event):
 
 	if input_event.is_action_released("boost"):
 		action["boost_released"] = true
-		
+
+	# Handle weapon selection (1-4 keys)
+	if(
+		input_event is InputEventKey and input_event.pressed and not input_event.echo
+		and input_event.physical_keycode >= KEY_1 and input_event.physical_keycode <= KEY_4
+	):
+		action["weapon_slot"] = input_event.physical_keycode - KEY_1 + 1
+
 	return action

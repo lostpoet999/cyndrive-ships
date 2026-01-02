@@ -245,15 +245,11 @@ func _unhandled_input(inev: InputEvent) -> void:
 	if not accepts_inputs:
 		return;
 
-	# Handle weapon selection (1-4 keys)
-	if inev is InputEventKey and inev.pressed and not inev.echo:
-		if inev.physical_keycode >= KEY_1 and inev.physical_keycode <= KEY_4:
-			var slot = inev.physical_keycode - KEY_1 + 1
-			if has_node("weapon_slot"):
-				$weapon_slot.select_slot(slot)
-			return
-
 	var action = BattleInputMap.get_action(get_viewport(), inev)
+
+	if "weapon_slot" in action and has_node("weapon_slot"):
+		$weapon_slot.select_slot(action["weapon_slot"])
+
 	if(control_enabled):
 		if (has_node("energy_systems")):
 			is_boosting = (

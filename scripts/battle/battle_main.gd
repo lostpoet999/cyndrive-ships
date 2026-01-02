@@ -114,7 +114,7 @@ var reverse_last_tap_at: int = Time.get_ticks_msec()
 @onready var battle_start_timetamp_msec: int = int(Time.get_unix_time_from_system())
 func _process(delta):
 	var display_time: int = battle_start_timetamp_msec + int(BattleTimeline.instance.time_msec())
-	$GUI/fps.set_text("%s fps" % Engine.get_frames_per_second())
+	$GUI/debug_stats/fps.set_text("%s fps" % Engine.get_frames_per_second())
 	$GUI/time.set_text("0x%X//%X" % [display_time >> 16, display_time & 0xFFFF])
 
 	# Countdown to battle start
@@ -203,7 +203,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if FeatureFlags.is_enabled("god_mode"):
 		if event is InputEventKey and event.physical_keycode == KEY_F9 and just_pressed:
 			god_mode_active = !god_mode_active
-			$GUI/god_mode_label.visible = god_mode_active
+			$GUI/debug_stats/god_mode_label.visible = god_mode_active
 
 	if event.is_action_pressed("replay") and just_pressed:
 		if (Time.get_ticks_msec() - reverse_last_tap_at) < tap_interval_msec:
@@ -260,11 +260,6 @@ func _on_battle_character_resurrected(character: BattleCharacter) -> void:
 		$GUI/restart_round_panel.set_visible(false)
 	living_team_members[character.get_node("team").team_id] += 1
 
+const one_weapon_slot_width_with_padding: float = 175.
 func _on_weapon_changed(slot: int) -> void:
-	var weapon_names = {
-		1: "[1] LASER",
-		2: "[2] CHAIN",
-		3: "[3] ---",
-		4: "[4] ---"
-	}
-	$GUI/weapon_label.text = weapon_names.get(slot, "[?] ???")
+	$GUI/selected_weapon_panel.transform.origin.x = float(slot - 1) * one_weapon_slot_width_with_padding
