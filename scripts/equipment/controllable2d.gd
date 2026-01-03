@@ -97,10 +97,11 @@ func stop() -> void:
 
 var last_intent: Vector2 = Vector2()
 func process_input_action(action: Dictionary) -> void:
-	intent_direction += action["intent"]
-	intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
-	if 0. < action["intent"].length():
-		last_intent = intent_direction
+	if "intent" in action:
+		intent_direction += action["intent"]
+		intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
+		if 0. < action["intent"].length():
+			last_intent = intent_direction
 	if "boost" in action and action["boost"]:
 		internal_force = (intent_direction + last_intent) * top_speed * booster_strength
 

@@ -48,7 +48,7 @@ func _physics_process(delta: float) -> void:
 	action["intent"] = Vector2()
 
 	var combatants = character.get_parent()
-	var to_target : Vector2
+	var to_target : Vector2 = character.spawn_position
 
 	# target not visible
 	var space_state = get_world_2d().direct_space_state
@@ -133,9 +133,9 @@ func _physics_process(delta: float) -> void:
 		)
 
 	if target_acquired and target_is_alive and time_since_laser > difficuilty_laser_frequency_sec:
+		action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
 		action["pewpew"] = chosen_target.get_global_position()
 		action["pewpew_target"] = chosen_target
-	action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
 
 	if "pewpew" in action:
 		time_since_laser = 0

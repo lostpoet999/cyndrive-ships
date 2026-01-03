@@ -32,7 +32,9 @@ static func get_action(viewport, input_event):
 		(1. if input_event.is_action_released("down") else 0. + -1. if input_event.is_action_released("up") else 0.)
 	)
 	
-	action["intent"] = intent_direction
+	if 0. < intent_direction.length():
+		action["intent"] = intent_direction
+
 	if(input_event.is_action_pressed("pewpew")):
 		var global_mouse_pos = xform(viewport.get_canvas_transform().affine_inverse(), viewport.get_mouse_position())
 		action["pewpew"] = global_mouse_pos

@@ -62,7 +62,10 @@ func restart_round() -> void:
 
 	# Handle temporal entanglement for afgfected ships
 	for c in $combatants.get_children():
-		if "entangled" in c and c.entangled and c.name != "character" and not c.has_node("replayer"):
+		if(
+			"entangled" in c and c.entangled and not c.has_node("replayer")
+			and c.has_node("team") and c.get_node("team").is_enemy($combatants/character.get_node("team"))
+		):
 			var records = c.get_node("temporal_recorder").stop_recording()
 			var replayer = Node2D.new()
 			replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))

@@ -42,6 +42,7 @@ func stop_replay() -> void:
 
 var cached_frame_duration_usec: float = 1000000. / 30. # 30 fps to microseconds
 var corrected_in_this_physics_loop: bool = false
+var last_applied_usec_key: int = -1
 func _process(delta: float) -> void:
 	if not replay_enabled:
 		return
@@ -52,37 +53,36 @@ func _process(delta: float) -> void:
 		time_since_last_physics_step_sec -= physics_interval_sec
 		corrected_in_this_physics_loop = false
 
-	# Set action pointer to be the closest to actual time
+	# Step action pointer to closesr to actual time if needed
 	var delta_to_current_action = INF
 	var current_time_flow = BattleTimeline.instance.time_flow
 	if abs(current_action_key) < usec_records.keys().size():
 		delta_to_current_action = -BattleTimeline.instance.time_since_usec(usec_records.keys()[current_action_key])
-		while true:
-			var delta_to_next_action = INF
-			if abs(current_action_key + current_time_flow) < usec_records.keys().size():
-				delta_to_next_action = -BattleTimeline.instance.time_since_usec(usec_records.keys()[current_action_key + current_time_flow])
-			if 0 < delta_to_current_action and delta_to_next_action < delta_to_current_action:
-				current_action_key += current_time_flow
-				delta_to_current_action = delta_to_next_action
-			else:
-				break
-	
-	if abs(current_msec_records_key) >= msec_records.keys().size():
-		return # Do not correct position when out of timeframe, or already corrected in this physics loop
-	
-	# Apply nearest action only when the action is near the current timepoint
-	if abs(delta_to_current_action) < (cached_frame_duration_usec / 2.):
-		if 0 < delta_to_current_action: # await the next opportunity to apply the input
-			# but only wait for the 90% of the delta to account for delays in this function call (estimation)
-			var key_to_apply = current_action_key
-			get_tree().create_timer(delta_to_current_action / 900000.).connect("timeout", func():
-				ship.process_input_action(usec_records[usec_records.keys()[key_to_apply]])
-			)
-		else:
-			ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
+		var delta_to_next_action = INF
+		if abs(current_action_key + current_time_flow) < usec_records.keys().size():
+			delta_to_next_action = -BattleTimeline.instance.time_since_usec(usec_records.keys()[current_action_key + current_time_flow])
+
+		# Step the action pointer to the closest action
+		if 0 < delta_to_current_action and delta_to_next_action < delta_to_current_action:
+			if last_applied_usec_key != current_action_key: # Apply the current action if not applied already
+				last_applied_usec_key = current_action_key
+				ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
+			current_action_key += current_time_flow
+			delta_to_current_action = delta_to_next_action
+
+	# Apply upcoming action
+	if ( # if there is any action stored for the current time
+		abs(current_action_key) < usec_records.keys().size()
+		and( # and if it's within the current estimated frametime
+			delta_to_current_action * current_time_flow < 0.
+			or abs(delta_to_current_action) <= cached_frame_duration_usec
+		)
+	):
+		last_applied_usec_key = current_action_key
+		ship.process_input_action(usec_records[usec_records.keys()[current_action_key]])
 		current_action_key += current_time_flow
-		return # do not corrigate msec_records when an action was applied
-	
+		return # do not correct msec_records when an action was applied
+
 	# Move msec_records pointer to the closest time point
 	var delta_to_current_msec_records = ( \
 		-BattleTimeline.instance.time_since_msec(msec_records.keys()[current_msec_records_key]) \
