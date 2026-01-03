@@ -48,7 +48,7 @@ func _physics_process(delta: float) -> void:
 	action["intent"] = Vector2()
 
 	var combatants = character.get_parent()
-	var to_target : Vector2 = character.spawn_position
+	var to_target : Vector2 = character.spawn_position - get_global_position()
 
 	# target not visible
 	var space_state = get_world_2d().direct_space_state
@@ -132,8 +132,8 @@ func _physics_process(delta: float) -> void:
 			)
 		)
 
+	action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
 	if target_acquired and target_is_alive and time_since_laser > difficuilty_laser_frequency_sec:
-		action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
 		action["pewpew"] = chosen_target.get_global_position()
 		action["pewpew_target"] = chosen_target
 
@@ -142,7 +142,7 @@ func _physics_process(delta: float) -> void:
 
 	# Detect if the ship is stuck, and apply boost to break free
 	position_moving_avg = lerp(get_global_position(), position_moving_avg, 0.5)
-	if ( # The ship is in one place, and has a long term contact, overwrite intent to "unstuck"
+	if ( # The ship is in one place, and has a long term contact, set intent to "unstuck"
 		(get_global_position() - position_moving_avg).length() < stuck_motion_threshold
 		and null != get_parent().body_in_contact and get_parent().contact_time > stuck_sec_threshold
 	):
