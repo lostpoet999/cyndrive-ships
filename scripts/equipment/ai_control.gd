@@ -7,8 +7,9 @@ extends Node2D
 @export var difficuilty_laser_frequency_sec: float = 1.8
 @export var attack_range: float = 2000.
 @export var goldfish_memory_sec: float = 1.
-@export var stuck_sec_threshold = 3.
-@export var stuck_motion_threshold = 30.
+@export var stuck_sec_threshold: float = 3.
+@export var stuck_motion_threshold: float = 30.
+@export var seconds_of_bossting_after_stuck: float = 0.5
 
 @onready var character: BattleCharacter = get_parent()
 var position_moving_avg: Vector2 = get_global_position()
@@ -32,6 +33,8 @@ func stop() -> void:
 func resume() -> void:
 	enabled = true
 
+var seconds_left_to_boost: float = 0.
+var boost_direction: Vector2 = Vector2()
 func _physics_process(delta: float) -> void:
 	time_until_script_execution -= delta
 	time_since_laser += delta
@@ -146,6 +149,13 @@ func _physics_process(delta: float) -> void:
 		(get_global_position() - position_moving_avg).length() < stuck_motion_threshold
 		and null != get_parent().body_in_contact and get_parent().contact_time > stuck_sec_threshold
 	):
-		action["boost"] = true
 		action["intent"] = (character.get_global_position() - get_parent().body_in_contact.get_global_position()).normalized()
+		action["boost_initiated"] = true
+		seconds_left_to_boost = seconds_of_bossting_after_stuck
+		boost_direction = action["intent"]
+
+	if 0 < seconds_left_to_boost:
+		seconds_left_to_boost -= delta
+		if 0 < seconds_left_to_boost: action["boost_released"] = true
+		else: action["intent"] = boost_direction
 	character.process_input_action(action)

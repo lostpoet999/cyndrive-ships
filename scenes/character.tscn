@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=28 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
@@ -6,7 +6,6 @@
 [ext_resource type="Texture2D" uid="uid://boy2t7aons7q8" path="res://icon.svg" id="3_u0pwc"]
 [ext_resource type="Script" uid="uid://biil32ytxamuc" path="res://scripts/equipment/laser_beam_ray.gd" id="4_2t4uj"]
 [ext_resource type="Script" uid="uid://cb5wlskdaf6ig" path="res://scripts/skin.gd" id="4_u0pwc"]
-[ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle/battle_input_map.gd" id="6_pscbx"]
 [ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="7_1bsqs"]
 [ext_resource type="AudioStream" uid="uid://bq8ahqkx2klan" path="res://audio/laserShoot.wav" id="7_lagn4"]
 [ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="8_pt8yu"]
@@ -58,7 +57,6 @@ shape = SubResource("CapsuleShape2D_k8udw")
 
 [node name="controller" type="Node2D" parent="."]
 script = ExtResource("1_4dcfn")
-booster_strength = 50.0
 momentum_dampener = 0.85
 
 [node name="skin" type="Node2D" parent="."]
@@ -84,9 +82,6 @@ top_level = true
 points = PackedVector2Array(0, 0, 100, 0)
 width = 0.0
 default_color = Color(0.878431, 0, 0, 1)
-
-[node name="input_processor" type="Node2D" parent="."]
-script = ExtResource("6_pscbx")
 
 [node name="debug_label" type="Label" parent="."]
 visible = false
@@ -161,3 +156,5 @@ stream = SubResource("AudioStreamRandomizer_i0gp7")
 volume_db = -3.0
 attenuation = 0.3186402
 max_polyphony = 5
+
+[connection signal="boosting" from="controller" to="." method="_on_controller_boosting"]

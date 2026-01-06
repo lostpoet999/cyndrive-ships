@@ -4,13 +4,13 @@ class_name EnergySystems extends Node
 @export var max_laser: int = 10
 
 func temporal_snapshot() -> Dictionary:
-	return { "laser": laser_energy_remaining, "boost": boost_energy_remaining }
+	return { "laser_energy": laser_energy_remaining, "boost_energy": boost_energy_remaining }
 
 func temporal_correction(snapshot: Dictionary) -> void:
-	if "laser" in snapshot:
-		laser_energy_remaining = snapshot["laser"]
-	if "boost" in snapshot:
-		boost_energy_remaining = snapshot["boost"]
+	if "laser_energy" in snapshot:
+		laser_energy_remaining = snapshot["laser_energy"]
+	if "boost_energy" in snapshot:
+		boost_energy_remaining = snapshot["boost_energy"]
 
 func _ready() -> void:
 	laser_energy_updated.emit(laser_energy_remaining)
@@ -23,11 +23,9 @@ func reset() -> void:
 	boost_energy_updated.emit(boost_energy_remaining)
 
 # called from the function by the same name in the battle_character script
-var is_boosting: bool
 var is_lasering: bool
 var pending_energy_cost: int = 1
 func process_input_action(action) -> void:
-	is_boosting = "boost" in action and action["boost"]
 	is_lasering = "pewpew" in action
 	if is_lasering:
 		pending_energy_cost = action.get("energy_cost", 1)
@@ -36,7 +34,7 @@ func process_input_action(action) -> void:
 var was_lasering = false
 func _process(delta: float) -> void:
 	
-	if is_boosting: _drain_boost(delta)
+	if $"../controller".is_boosting: _drain_boost(delta)
 	else: _recharge_boost(delta)
 	
 	if is_lasering and not was_lasering: _update_laser_energy(-pending_energy_cost)

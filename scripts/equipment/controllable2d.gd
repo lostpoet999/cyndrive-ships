@@ -1,5 +1,7 @@
 extends Node2D
 
+signal boosting(is_boosting: bool)
+
 @export var active_movement_rotation_threshold: float = 0.05
 @export var passive_movement_rotation_threshold: float = 0.15
 
@@ -21,7 +23,7 @@ Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
 @export_range(0.001, 200) var top_speed: float = 20.
 @export_range(1, 100) var start_resistance: float = 10.
 @export_range(1, 100) var stop_resistance: float = 5.
-@export_range(10., 100.) var booster_strength: float = 100.
+@export_range(0.1, 10.) var booster_strength: float = 2.
 @export_range(0., 1.) var momentum_dampener: float = 1.
 
 
@@ -96,14 +98,18 @@ func stop() -> void:
 	last_intent = Vector2()
 
 var last_intent: Vector2 = Vector2()
+var is_boosting: bool = false
 func process_input_action(action: Dictionary) -> void:
 	if "intent" in action:
-		intent_direction += action["intent"]
-		intent_direction = Vector2(sign(intent_direction.x), sign(intent_direction.y))
+		intent_direction = Vector2(sign(action["intent"].x), sign(action["intent"].y))
 		if 0. < action["intent"].length():
 			last_intent = intent_direction
-	if "boost" in action and action["boost"]:
-		internal_force = (intent_direction + last_intent) * top_speed * booster_strength
+	var was_boosting = is_boosting
+	is_boosting = (
+		(is_boosting and (not "boost_released" in action or not action["boost_released"]))
+		or ("boost_initiated" in action and action["boost_initiated"])
+	)
+	if was_boosting != is_boosting: boosting.emit(is_boosting)
 
 @onready var last_position = get_global_position()
 func _physics_process(_delta):
@@ -134,6 +140,10 @@ func _physics_process(_delta):
 		x = get_decel_x(abs(previous_intent.y))
 		current_intent.y = decelerate_function(x - 1) * sign(previous_intent.y)
 	current_intent = current_intent.clamp(-Vector2(top_speed,top_speed), Vector2(top_speed,top_speed))
+
+	""" Apply boost"""
+	if is_boosting:
+		internal_force += (intent_direction + last_intent) * top_speed * booster_strength
 
 	"""Apply the new speed"""
 	internal_force *= 0.99

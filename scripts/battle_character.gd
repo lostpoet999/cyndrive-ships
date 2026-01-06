@@ -219,45 +219,27 @@ func resurrect_me():
 		$ai_control.enabled = true
 	resurrected.emit(self)
 
-var accepts_inputs = false
 var control_enabled = false
-func accepts_user_input(yesno):
-	accepts_inputs = yesno
-
-var was_boosting = false
 func pause_control() -> void:
 	control_enabled = false
-	was_boosting = is_boosting
-	is_boosting = false
 	$controller.stop()
 	if has_node("ai_control"):
 		$ai_control.stop()
 
 func resume_control() -> void:
-	is_boosting = was_boosting
 	control_enabled = true
 	$controller.start()
 	if has_node("ai_control"):
 		$ai_control.resume()
 
-var is_boosting: bool = false
-func _unhandled_input(inev: InputEvent) -> void:
-	if not accepts_inputs:
-		return;
-
-	var action = BattleInputMap.get_action(get_viewport(), inev)
-
+func process_input_action(action: Dictionary) -> void:
 	if "weapon_slot" in action and has_node("weapon_slot"):
 		$weapon_slot.select_slot(action["weapon_slot"])
 
 	if(control_enabled):
 		if (has_node("energy_systems")):
-			is_boosting = (
-				(is_boosting or ("boost" in action and action["boost"]))
-				and not  "boost_released" in action
-			)
-			action.erase("boost_released")
-			action["boost"] = is_boosting and $energy_systems.has_boost_energy()
+			if "boost_initiated" in action and not $energy_systems.has_boost_energy():
+				action.erase("boost_initiated")
 
 			# Check energy based on weapon cost
 			var energy_cost = 1
@@ -275,9 +257,7 @@ func _unhandled_input(inev: InputEvent) -> void:
 			action["pewpew_target"] =  $"../../target_assist".get_current_target()
 			
 		# move camera lightly on boost  
-		if action["boost"]:
-			$booster_fx.visible = true
-			$thruster_fx.visible = false
+		if "boost_initiated" in action:
 			$booster_sound.play()
 			await $booster_sound.finished.connect(func():
 				$booster_fx.visible = false
@@ -288,9 +268,7 @@ func _unhandled_input(inev: InputEvent) -> void:
 			boost_tween.tween_property($cam, "offset", camera_direction * approx_size * 2., 0.1)
 			boost_tween.tween_property($cam, "offset", Vector2(), 0.5)
 			boost_tween.chain()
-	process_input_action(action)
 
-func process_input_action(action: Dictionary) -> void:
 	# For targets representing past versions ( e.g. player previous round ), positions may mismatch slightly
 	# because of the inaccuracies in the replay system and floating point inaccuracies of the physics system
 	# Should the target be slightly off, but still around the actual laser position, the position is corrected
@@ -359,3 +337,10 @@ func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5) -> v
 		tween.tween_property($cam, "offset", shake_offset, duration / steps)
 	
 	tween.tween_property($cam, "offset", Vector2.ZERO, 0.1)
+
+
+func _on_controller_boosting(is_boosting: bool) -> void:
+	$booster_fx.visible = is_boosting
+	$thruster_fx.visible = not is_boosting
+	if is_boosting: $booster_sound.play()
+	else: $booster_sound.stop()

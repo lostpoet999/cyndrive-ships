@@ -24,7 +24,7 @@ func _process(_delta: float) -> void:
 		while not usec_records.is_empty() and usec_records.keys().back() > BattleTimeline.instance.time_usec():
 			if target.has_node("controller"):
 				var snapshot_to_apply = usec_records[usec_records.keys().back()]
-				snapshot_to_apply.erase("boost")
+				snapshot_to_apply.erase("boost_initiated")
 				target.process_input_action(snapshot_to_apply)
 			usec_records.erase(usec_records.keys().back())
 

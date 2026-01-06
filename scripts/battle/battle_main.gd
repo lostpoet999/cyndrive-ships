@@ -12,7 +12,6 @@ var god_mode_active: bool = false
 
 func _ready():
 	laupeerium_bar.bars_remaining = UIEnergyBar.max_bars
-	$combatants/character.accepts_user_input(true)
 	$combatants/character/controller.stop()
 	living_team_members[2] = 0
 	living_team_members[1] = 0

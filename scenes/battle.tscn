@@ -1,6 +1,7 @@
-[gd_scene load_steps=57 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=58 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
+[ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle/player_input.gd" id="2_4u087"]
 [ext_resource type="Script" uid="uid://do3ik1jop56ta" path="res://scripts/battle/battle_timeline.gd" id="2_ekamt"]
 [ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/battle/temporal_recorder.gd" id="2_kjq4e"]
 [ext_resource type="Shader" uid="uid://dvimhyltktrda" path="res://shaders/sonar.gdshader" id="2_qdfj8"]
@@ -181,6 +182,10 @@ metadata/_custom_type_script = "uid://cud6a5voxneed"
 
 [node name="battle" type="Node2D"]
 script = ExtResource("1_j7yva")
+
+[node name="player_input" type="Node2D" parent="."]
+script = ExtResource("2_4u087")
+metadata/_custom_type_script = "uid://hldxmbsg8w6t"
 
 [node name="timeline" type="Node" parent="."]
 script = ExtResource("2_ekamt")
@@ -668,6 +673,7 @@ skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), Sub
 rotation = 3.14159
 script = ExtResource("5_3g8p0")
 
+[connection signal="action_triggered" from="player_input" to="combatants/character" method="process_input_action"]
 [connection signal="pressed" from="GUI/restart_round_panel/TextureButton" to="." method="restart_round"]
 [connection signal="body_entered" from="target_assist" to="target_assist" method="_on_body_entered"]
 [connection signal="body_exited" from="target_assist" to="target_assist" method="_on_body_exited"]

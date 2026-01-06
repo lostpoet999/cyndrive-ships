@@ -1,6 +1,16 @@
 extends Node2D
 
-class_name BattleInputMap
+class_name PlayerInput
+
+signal action_triggered(action: Dictionary)
+
+var current_intent: Vector2 = Vector2()
+func _unhandled_input(input_event: InputEvent) -> void:
+	var current_action = get_action(get_viewport(), input_event)
+	if "intent" in current_action:
+		current_intent += current_action["intent"]
+		current_action["intent"] = current_intent
+	action_triggered.emit(current_action)
 
 #	_FORCE_INLINE_ real_t tdotx(const Vector2 &p_v) const { return columns[0][0] * p_v.x + columns[1][0] * p_v.y; }
 static func tdotx(mat, vec):
@@ -16,7 +26,7 @@ static func xform(mat, vec):
 Provides the processed control output in a form of a dictionary from the provided data and user input events
 Output format is the following: 
 	action["intent"]: vector: intent of user control in 2D space (up, down, left right). Vector values are either -1, 0 or 1
-	action["boost"]: boolean value for the activation of the ships booster
+	action["boost_initiated"]: boolean value for the activation of the ships booster
 	action["boost_released"]: boolean value for the de-activation of the ships booster ( not stored in temporal records )
 	action["pewpew"]: (if present) the global position where the laser points to when fired
 	action["pewpew_target"]: (if present) the target object to which the laser is supposed to be fired
@@ -40,7 +50,7 @@ static func get_action(viewport, input_event):
 		action["pewpew"] = global_mouse_pos
 
 	if input_event.is_action_pressed("boost"):
-		action["boost"] = true
+		action["boost_initiated"] = true
 
 	if input_event.is_action_released("boost"):
 		action["boost_released"] = true
