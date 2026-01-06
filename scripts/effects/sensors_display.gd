@@ -30,36 +30,32 @@ func set_sonar_visibility(yes: bool) -> void:
 func set_sonar_rotation(rot: float) -> void: 
 	get_material().set_shader_parameter("sonar_angle", rot)
 
-func expose_health() -> void:
-	var health_display_tween = create_tween()
-	health_display_tween.tween_method(
+func expose_health(over_seconds: float = 0.01) -> void:
+	create_tween().tween_method(
 		func(v): 
 			get_material().set_shader_parameter("health_ring_width", v)
 			health_ring_width = v,
 		health_ring_width, health_ring_default_width, 
-		0.01
+		over_seconds
 	)
-	health_display_tween.tween_interval(2.)
-	health_display_tween.tween_method(
+
+func hide_health(over_seconds: float = 0.2) -> void:
+	create_tween().tween_method(
 		func(v): 
 			get_material().set_shader_parameter("health_ring_width", v)
 			health_ring_width = v,
 		health_ring_width, 0., 
-		0.2
+		over_seconds
 	)
-	health_display_tween.chain() 
 
 var prev_health: float = 1.
 var health_greeble_offset: Vector2 = Vector2()
 const health_ring_default_width: float = 0.4;
-var health_ring_width: float = health_ring_default_width
+var health_ring_width: float = 0.
 func set_health_percentage(percentage: float) -> void:
 	# Display health data
 	get_material().set_shader_parameter("health_ring_core_width", 0.075 * percentage)
 	get_material().set_shader_parameter("health", percentage)
-
-	# Show actual health only when damage was taken
-	expose_health()
 
 	# Nudge the health display greebles
 	if percentage < prev_health:
@@ -69,6 +65,7 @@ func set_health_percentage(percentage: float) -> void:
 			func(vec) : get_material().set_shader_parameter("noise_offset", vec),
 			current_greeble_offset, health_greeble_offset, 0.2
 		)
+	prev_health = percentage
 
 func add_display_object(parent: Node2D, parent_offset: int, target: Node2D, p_color: Color) -> Node2D:
 	if not visible:

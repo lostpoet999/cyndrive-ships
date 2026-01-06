@@ -21,6 +21,7 @@ uniform float health_range : hint_range(0.0, 6.28318530718) = 0.5;
 uniform float health_angle : hint_range(0.0, 6.28318530718) = 0.5;
 uniform float health_ring_width : hint_range(0.0, 1.0) = 0.9;
 uniform float health_ring_core_width : hint_range(0.0, 0.1) = 0.1;
+uniform float health_display_alpha : hint_range(0.0, 1.0) = 0.55;
 uniform float greeble_strength : hint_range(0., 0.1) = 0.001;
 uniform float pixel_size = 1.;
 
@@ -75,7 +76,7 @@ void fragment() {
       smoothstep(
         health_ring_core_width, 0.0015,
         abs(greebled_pixel_center_distance - center_blindspot * (1. - health_ring_width))
-      ) * 0.75
+      ) * health_display_alpha
     );
   } else if (pixel_center_distance >= center_blindspot * sonar_blindspot_ring) {
     // Sonar display

@@ -90,9 +90,10 @@ shader_parameter/health = 1.0
 shader_parameter/health_range = 1.14800005453
 shader_parameter/health_angle = 1.4790000702525
 shader_parameter/health_ring_width = 0.0
-shader_parameter/health_ring_core_width = 0.06400000304
-shader_parameter/greeble_strength = 0.026000001235
-shader_parameter/pixel_size = 50.0
+shader_parameter/health_ring_core_width = 0.0750000035625
+shader_parameter/health_display_alpha = 0.55
+shader_parameter/greeble_strength = 0.0250000011875
+shader_parameter/pixel_size = 75.0
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_61i1y"]
 noise_type = 0

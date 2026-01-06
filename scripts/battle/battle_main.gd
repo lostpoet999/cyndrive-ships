@@ -5,12 +5,14 @@ extends Node2D
 @onready var character_template = preload("res://scenes/character.tscn")
 @onready var laupeerium_bar: UIEnergyBar = $GUI/status_padding/VBoxContainer/temporal_equipment_status/laupeerium
 
-var init_countdown_sec: float = 2.
+const round_start_delay_sec: float = 2.
+var init_countdown_sec: float = round_start_delay_sec
 var current_laupeerium: float = starting_laupeerium
 var living_team_members: Dictionary = {}
 var god_mode_active: bool = false
 
 func _ready():
+	reset_health_display()
 	laupeerium_bar.bars_remaining = UIEnergyBar.max_bars
 	$combatants/character/controller.stop()
 	living_team_members[2] = 0
@@ -44,6 +46,10 @@ func _draw() -> void:
 	for line in debug_lines:
 		draw_line(line.from, line.to, line.color, 3.0)
 
+func reset_health_display() -> void:
+	$GUI/sensors_display.expose_health(0.5)
+	create_tween().tween_method($GUI/sensors_display.set_health_percentage, 0., 1., round_start_delay_sec)
+
 func restart_round() -> void:
 	# Handle resource changes with round restart
 	current_laupeerium -= 1.
@@ -57,7 +63,10 @@ func restart_round() -> void:
 
 	# Create a clone of the ship
 	create_new_puppet($combatants/character)
+
+	# Set up UI for the new round
 	$GUI/rewind_effects.set_visible(true)
+	reset_health_display()
 
 	# Handle temporal entanglement for afgfected ships
 	for c in $combatants.get_children():
@@ -128,7 +137,6 @@ func _process(delta):
 				combatant.resume_control()
 			$timeline.reset()
 			$GUI/sensors_display.set_sonar_visibility(false)
-			$GUI/sensors_display.expose_health()
 		else: return
 
 	# score, target assist area and sensor control
