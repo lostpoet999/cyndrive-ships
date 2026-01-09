@@ -84,11 +84,14 @@ func _process(delta: float) -> void:
 		return # do not correct msec_records when an action was applied
 
 	# Move msec_records pointer to the closest time point
-	var delta_to_current_msec_records = ( \
-		-BattleTimeline.instance.time_since_msec(msec_records.keys()[current_msec_records_key]) \
-		* current_time_flow \
-	)
+	var delta_to_current_msec_records = INF
 	var delta_to_next_msec_records = INF
+	if abs(current_msec_records_key) < msec_records.keys().size():
+		delta_to_current_msec_records = ( \
+			-BattleTimeline.instance.time_since_msec(msec_records.keys()[current_msec_records_key]) \
+			* current_time_flow \
+		)
+
 	while abs(current_msec_records_key + current_time_flow) < msec_records.keys().size():
 		delta_to_next_msec_records = ( \
 			-BattleTimeline.instance.time_since_msec(msec_records.keys()[current_msec_records_key + current_time_flow]) \
