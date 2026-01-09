@@ -5,6 +5,8 @@ var usec_records: Dictionary # key is in usec
 var msec_records: Dictionary # key is in msec
 #endregion
 
+signal temporal_scope_changed(still_relevant: bool)
+
 @export var corrections_per_second: float = 4.
 
 @onready var current_action_key: int = 0
@@ -29,7 +31,9 @@ func is_within_current_time() -> bool:
 		)
 	)
 
+var is_in_scope: bool = true
 func reset() -> void:
+	is_in_scope = true
 	current_action_key = 0
 	current_msec_records_key = 0
 	last_corrected = BattleTimeline.instance.time_msec()
@@ -46,6 +50,11 @@ var last_applied_usec_key: int = -1
 func _process(delta: float) -> void:
 	if not replay_enabled:
 		return
+
+	# Monitor if the replayer is relevant
+	if is_in_scope != is_within_current_time():
+		is_in_scope = is_within_current_time()
+		temporal_scope_changed.emit(is_in_scope)
 
 	# Estimate time until the next physics step
 	time_since_last_physics_step_sec += delta

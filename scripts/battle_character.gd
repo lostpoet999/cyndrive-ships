@@ -76,7 +76,17 @@ func is_alive() -> bool:
 	return self.has_node("health") and $health.is_alive
 
 func in_battle() -> bool:
-	return is_alive() and (not has_node("replayer") or $replayer.is_within_current_time())
+	return (
+		is_alive() 
+		and (
+			# Only player or AI controlled characters don't have a replayer
+			not has_node("replayer")
+			# The replayer has records for the current time
+			or $replayer.is_within_current_time()
+			# AI can retake control after replayer runs out of moves
+			or has_node("ai_control")
+		)
+	)
 
 func set_highlight(yesno: bool) -> void:
 	$target_arrow.set_visible(yesno)
@@ -198,13 +208,21 @@ func respawn():
 	set_collision_layer_value(1, true)
 	set_visible(true)
 	$health.respawn()
-	was_alive = true
 	$controller.stop()
 	resume_control()
 	if has_node("temporal_recorder"):
 		$temporal_recorder.start_recording()
+		if extend_replayer and has_node("replayer"):
+			var records = $temporal_recorder.copy_marked_records(
+				$replayer.usec_records.keys()[-1],
+				$replayer.msec_records.keys()[-1]
+			)
+			$replayer.usec_records.merge(records["action"])
+			$replayer.msec_records.merge(records["motion"])
 	if has_node("replayer"):
 		$replayer.reset()
+	extend_replayer = false
+	was_alive = true
 
 func unalive_me():
 	set_collision_layer_value(1, false)
@@ -338,6 +356,16 @@ func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5) -> v
 	
 	tween.tween_property($cam, "offset", Vector2.ZERO, 0.1)
 
+var extend_replayer: bool = false
+func _on_replayer_temporal_scope_changed(in_scope: bool) -> void:
+	# Mark the exact time and index values within the recorder that needs to be added to the replayer records
+	if not in_scope:
+		$temporal_recorder.mark_current_time()
+		extend_replayer = true
+
+	# Fallback to AI once replayer runs out of records
+	if has_node("ai_control"):
+		$ai_control.set_disabled(in_scope)
 
 func _on_controller_boosting(is_boosting: bool) -> void:
 	$booster_fx.visible = is_boosting

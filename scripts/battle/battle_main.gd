@@ -68,7 +68,7 @@ func restart_round() -> void:
 	$GUI/rewind_effects.set_visible(true)
 	reset_health_display()
 
-	# Handle temporal entanglement for afgfected ships
+	# Handle temporal entanglement for affected ships
 	for c in $combatants.get_children():
 		if(
 			"entangled" in c and c.entangled and not c.has_node("replayer")
@@ -78,8 +78,9 @@ func restart_round() -> void:
 			var replayer = Node2D.new()
 			replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
 			replayer.name = "replayer"
-			replayer.usec_records = records["actions"]
+			replayer.usec_records = records["action"]
 			replayer.msec_records = records["motion"]
+			replayer.temporal_scope_changed.connect(c._on_replayer_temporal_scope_changed)
 			$timeline.connect("round_reset", replayer.reset)
 			$timeline.connect("round_reset", replayer.start_replay)
 			replayer.reset()
@@ -181,7 +182,7 @@ func create_new_puppet(predecessor):
 	puppet.init_clone(predecessor)
 	replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
 	replayer.name = "replayer"
-	replayer.usec_records = records["actions"]
+	replayer.usec_records = records["action"]
 	replayer.msec_records = records["motion"]
 	$timeline.connect("round_reset", puppet.respawn)
 	$timeline.connect("rewind_started", puppet.pause_control)
