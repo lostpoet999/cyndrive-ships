@@ -26,7 +26,7 @@ feature_flags.json
 data_*/
 mono_crash.*.json
 
-#addons
+# Misc
 addons/*
-
+export/*
 *.import

@@ -36,7 +36,7 @@ Time travel complicates who wins the battles, because even after your ship is de
 
 Time travel is bound to a time traveling engine, and powering it requires a TON of energy, 
 time travel can be initiated only through the player carrier ship.
-Time travel is not possible once the player carrier ship is destroyed completly, thus
+Time travel is not possible once the player carrier ship is destroyed completely, thus
 the destruction of both the carrier ship and the player controlled battle ship results in losing the game.
 
 Blowing up the carrier ship does not destroy it completely.

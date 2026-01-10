@@ -277,6 +277,6 @@ func _on_battle_character_resurrected(character: BattleCharacter) -> void:
 		$GUI/restart_round_panel.set_visible(false)
 	living_team_members[character.get_node("team").team_id] += 1
 
-const one_weapon_slot_width_with_padding: float = 175.
+const one_weapon_slot_width_with_padding: float = 128.5
 func _on_weapon_changed(slot: int) -> void:
-	$GUI/selected_weapon_panel.transform.origin.x = float(slot) * one_weapon_slot_width_with_padding
+	$GUI/selected_weapon_panel.transform.origin.y = float(slot) * one_weapon_slot_width_with_padding
