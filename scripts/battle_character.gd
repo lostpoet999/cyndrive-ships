@@ -264,7 +264,7 @@ func process_input_action(action: Dictionary) -> void:
 				action.erase("pewpew")
 				action["pewpew_released"] = true
 		
-		if "pewpew" in action and $"../../target_assist".is_target_locked():
+		if not has_node("ai_control") and "pewpew" in action and $"../../target_assist".is_target_locked():
 			action["pewpew"] = $"../../target_assist".get_current_target_position()
 			action["pewpew_target"] =  $"../../target_assist".get_current_target()
 			

@@ -1,10 +1,10 @@
 extends Node2D
 
-@export var runs_per_second: float = 5.
+@export var runs_per_second: float = 10.
 @export var max_distance_from_target: float = 10.
-@export var laser_aim: float = 1.5
-@export var laser_haste: float = 3.615
-@export var difficuilty_laser_frequency_sec: float = 1.8
+@export var target_clamp_distance: float = 300.
+@export var laser_haste: float = 0.6
+@export var laser_lookahead: float = 0.15
 @export var attack_range: float = 2000.
 @export var goldfish_memory_sec: float = 1.
 @export var stuck_sec_threshold: float = 3.
@@ -17,7 +17,6 @@ var target_moving_avg: Vector2 = Vector2()
 var time_until_script_execution = 1. / runs_per_second
 var chosen_target: CharacterBody2D
 var enabled: bool = true
-var time_since_laser: float = 0.
 var distance_to_target: float = 0.
 var time_until_target_drop: float = goldfish_memory_sec
 
@@ -28,16 +27,24 @@ func set_disabled(yesno: bool) -> void:
 func stop() -> void:
 	enabled = false
 	chosen_target = null
-	time_since_laser = 0.
 
 func resume() -> void:
 	enabled = true
 
+func _process(delta: float) -> void:
+	if chosen_target != null:
+		target_moving_avg = lerp(
+			chosen_target.get_global_position() + chosen_target.get_velocity() * chosen_target.approx_size * delta * laser_lookahead,
+			target_moving_avg,
+			laser_haste
+		)
+
 var seconds_left_to_boost: float = 0.
 var boost_direction: Vector2 = Vector2()
+var target_is_acquired = false
+var target_was_acquired = false
 func _physics_process(delta: float) -> void:
 	time_until_script_execution -= delta
-	time_since_laser += delta
 
 	# Feature flag to disable all AI for testing
 	if FeatureFlags.is_enabled("disable_ai"):
@@ -111,16 +118,14 @@ func _physics_process(delta: float) -> void:
 	)
 
 	# See if there's anything in the way to the target
-	var target_acquired = false
-	var ray_to_target = (target_moving_avg - character.get_global_position())
 	if chosen_target != null:
-		target_moving_avg = lerp(target_moving_avg, chosen_target.get_global_position(), laser_aim + max(0.05, 0.6 - time_since_laser) * laser_haste)
-		if raycast_result == null:
-			raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
-				character.get_global_position(),
-				character.get_global_position() + ray_to_target
-			))
-		target_acquired = (
+		var ray_to_target = (chosen_target.get_global_position() - character.get_global_position())
+		raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
+			get_global_position(),
+			character.get_global_position() + ray_to_target
+		))
+		target_was_acquired = target_is_acquired
+		target_is_acquired = (
 			( # Collsiion detected at gunpoint, and the target is an enemy
 				"collider" in raycast_result and raycast_result.collider.has_node("team")
 				and raycast_result.collider.get_node("team").is_enemy(character.get_node("team"))
@@ -136,12 +141,14 @@ func _physics_process(delta: float) -> void:
 		)
 
 	action["intent"] = Vector2(sign(to_target.x), sign(to_target.y)) * ideal_speed
-	if target_acquired and target_is_alive and time_since_laser > difficuilty_laser_frequency_sec:
-		action["pewpew"] = chosen_target.get_global_position()
+	if target_is_acquired and not target_was_acquired: action["pewpew_initiated"] = true
+	elif not target_is_acquired and target_was_acquired: action["pewpew_released"] = true
+	
+	if target_is_acquired and target_is_alive:
+		if (target_moving_avg - chosen_target.get_global_position()).length() < target_clamp_distance:
+			action["pewpew"] = chosen_target.get_global_position()
+		else: action["pewpew"] = target_moving_avg
 		action["pewpew_target"] = chosen_target
-
-	if "pewpew" in action:
-		time_since_laser = 0
 
 	# Detect if the ship is stuck, and apply boost to break free
 	position_moving_avg = lerp(get_global_position(), position_moving_avg, 0.5)
