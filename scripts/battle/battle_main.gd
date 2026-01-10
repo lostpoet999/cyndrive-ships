@@ -273,4 +273,4 @@ func _on_battle_character_resurrected(character: BattleCharacter) -> void:
 
 const one_weapon_slot_width_with_padding: float = 175.
 func _on_weapon_changed(slot: int) -> void:
-	$GUI/selected_weapon_panel.transform.origin.x = float(slot - 1) * one_weapon_slot_width_with_padding
+	$GUI/selected_weapon_panel.transform.origin.x = float(slot) * one_weapon_slot_width_with_padding

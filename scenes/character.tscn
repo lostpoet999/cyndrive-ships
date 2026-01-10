@@ -1,4 +1,4 @@
-[gd_scene load_steps=28 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=24 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
@@ -6,13 +6,9 @@
 [ext_resource type="Texture2D" uid="uid://boy2t7aons7q8" path="res://icon.svg" id="3_u0pwc"]
 [ext_resource type="Script" uid="uid://biil32ytxamuc" path="res://scripts/equipment/laser_beam_ray.gd" id="4_2t4uj"]
 [ext_resource type="Script" uid="uid://cb5wlskdaf6ig" path="res://scripts/skin.gd" id="4_u0pwc"]
+[ext_resource type="Script" uid="uid://cdrsm7mlhnmnm" path="res://scripts/equipment/energy_systems.gd" id="6_vovfy"]
 [ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="7_1bsqs"]
-[ext_resource type="AudioStream" uid="uid://bq8ahqkx2klan" path="res://audio/laserShoot.wav" id="7_lagn4"]
 [ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="8_pt8yu"]
-[ext_resource type="AudioStream" uid="uid://c4n8p63sujmff" path="res://audio/laserShoot (1).wav" id="8_x8k1v"]
-[ext_resource type="AudioStream" uid="uid://dxola10ny5udx" path="res://audio/laserShoot (2).wav" id="9_ih8y6"]
-[ext_resource type="AudioStream" uid="uid://bguhqs53aq370" path="res://audio/laserShoot (3).wav" id="10_rbud2"]
-[ext_resource type="AudioStream" uid="uid://dg0r36bkobs0y" path="res://audio/laserShoot (4).wav" id="11_vovfy"]
 [ext_resource type="AudioStream" uid="uid://x01j2fo2me0d" path="res://audio/engine_thruster.wav" id="14_8yvht"]
 [ext_resource type="Script" uid="uid://b8xstfcmfbymf" path="res://scripts/effects/thruster_fx.gd" id="16_x8k1v"]
 [ext_resource type="AudioStream" uid="uid://rps6evxmvrsb" path="res://audio/explosion_01.wav" id="17_u0pwc"]
@@ -22,19 +18,13 @@
 [ext_resource type="AudioStream" uid="uid://bokt2np2jc03c" path="res://audio/engine_booster.wav" id="21_cicko"]
 [ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/battle/temporal_recorder.gd" id="22_bj47h"]
 [ext_resource type="Script" uid="uid://co4eimc5mgx3i" path="res://scripts/equipment/weapon_slot.gd" id="23_weaponslot"]
-[ext_resource type="Script" path="res://scripts/equipment/chain_lightning.gd" id="24_chainlightning"]
+[ext_resource type="Script" uid="uid://n2lp6a2eyw3m" path="res://scripts/equipment/chain_lightning.gd" id="24_chainlightning"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
 radius = 15.0
 height = 60.0
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_i0gp7"]
-streams_count = 5
-stream_0/stream = ExtResource("7_lagn4")
-stream_1/stream = ExtResource("8_x8k1v")
-stream_2/stream = ExtResource("9_ih8y6")
-stream_3/stream = ExtResource("10_rbud2")
-stream_4/stream = ExtResource("11_vovfy")
 
 [sub_resource type="Gradient" id="Gradient_0dpix"]
 offsets = PackedFloat32Array(0, 0.47215497, 0.8595642, 1)
@@ -68,8 +58,23 @@ texture = ExtResource("3_u0pwc")
 [node name="team" type="Node2D" parent="."]
 script = ExtResource("3_j5io8")
 
+[node name="energy_systems" type="Node" parent="." node_paths=PackedStringArray("weapon_system")]
+script = ExtResource("6_vovfy")
+weapon_recharge_per_sec = 20.0
+weapon_system = NodePath("../weapon_slot")
+metadata/_custom_type_script = "uid://cdrsm7mlhnmnm"
+
+[node name="weapon_slot" type="Node" parent="." node_paths=PackedStringArray("weapons")]
+script = ExtResource("23_weaponslot")
+weapons = [NodePath("../laser_beam"), NodePath("../chain_lightning")]
+metadata/_custom_type_script = "uid://co4eimc5mgx3i"
+
 [node name="laser_beam" type="Node2D" parent="."]
 script = ExtResource("4_2t4uj")
+target_time_sec = 0.0
+base_damage = 0.4
+energy_cost = 0.05
+metadata/_custom_type_script = "uid://cy4bwltyfsq3g"
 
 [node name="sound" type="AudioStreamPlayer2D" parent="laser_beam"]
 stream = SubResource("AudioStreamRandomizer_i0gp7")
@@ -79,9 +84,28 @@ max_polyphony = 5
 
 [node name="beam_line" type="Line2D" parent="laser_beam"]
 top_level = true
-points = PackedVector2Array(0, 0, 100, 0)
+z_index = -5
+points = PackedVector2Array(0, 0, 589, 650)
 width = 0.0
-default_color = Color(0.878431, 0, 0, 1)
+default_color = Color(1, 0, 0, 0.78431374)
+
+[node name="raycast" type="RayCast2D" parent="laser_beam"]
+top_level = true
+target_position = Vector2(475, -32)
+
+[node name="chain_lightning" type="Node2D" parent="." node_paths=PackedStringArray("wielder")]
+script = ExtResource("24_chainlightning")
+wielder = NodePath("..")
+chain_radius = 750.0
+base_damage = 0.05
+energy_cost = 0.1
+metadata/_custom_type_script = "uid://cy4bwltyfsq3g"
+
+[node name="sound" type="AudioStreamPlayer2D" parent="chain_lightning"]
+stream = SubResource("AudioStreamRandomizer_i0gp7")
+volume_db = -3.0
+attenuation = 0.3186402
+max_polyphony = 5
 
 [node name="debug_label" type="Label" parent="."]
 visible = false
@@ -144,17 +168,6 @@ stream = ExtResource("21_cicko")
 script = ExtResource("22_bj47h")
 triggers_per_second = 20
 
-[node name="weapon_slot" type="Node" parent="."]
-script = ExtResource("23_weaponslot")
-
-[node name="chain_lightning" type="Node2D" parent="."]
-script = ExtResource("24_chainlightning")
-chain_radius = 750.0
-
-[node name="sound" type="AudioStreamPlayer2D" parent="chain_lightning"]
-stream = SubResource("AudioStreamRandomizer_i0gp7")
-volume_db = -3.0
-attenuation = 0.3186402
-max_polyphony = 5
-
 [connection signal="boosting" from="controller" to="." method="_on_controller_boosting"]
+[connection signal="boost_energy_updated" from="energy_systems" to="." method="_on_energy_systems_boost_energy_updated"]
+[connection signal="weapon_energy_updated" from="energy_systems" to="." method="_on_energy_systems_weapon_energy_updated"]

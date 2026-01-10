@@ -60,9 +60,9 @@ func set_health_percentage(percentage: float) -> void:
 	# Nudge the health display greebles
 	if percentage < prev_health:
 		var current_greeble_offset = health_greeble_offset
-		health_greeble_offset += Vector2(randf(), randf()) * 0.01
+		health_greeble_offset += Vector2(randf() - 0.5, randf() - 0.5) * 0.02
 		create_tween().tween_method(
-			func(vec) : get_material().set_shader_parameter("noise_offset", vec),
+			func(vec): get_material().set_shader_parameter("noise_offset", vec),
 			current_greeble_offset, health_greeble_offset, 0.2
 		)
 	prev_health = percentage

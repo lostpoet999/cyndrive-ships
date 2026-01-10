@@ -5,12 +5,25 @@ class_name PlayerInput
 signal action_triggered(action: Dictionary)
 
 var current_intent: Vector2 = Vector2()
+var is_shooting: bool = false
+var current_pewpew_target: Vector2 = Vector2()
 func _unhandled_input(input_event: InputEvent) -> void:
-	var current_action = get_action(get_viewport(), input_event)
-	if "intent" in current_action:
-		current_intent += current_action["intent"]
-		current_action["intent"] = current_intent
-	action_triggered.emit(current_action)
+	var action = get_action(input_event)
+	is_shooting = (
+		(is_shooting and (not "pewpew_released" in action or not action["pewpew_released"]))
+		or ("pewpew_initiated" in action and action["pewpew_initiated"])
+	)
+
+	if "intent" in action:
+		current_intent += action["intent"]
+		action["intent"] = current_intent
+	action_triggered.emit(action)
+
+func _process(_delta: float) -> void:
+	var action: Dictionary = {}
+	if is_shooting:
+		action["pewpew"] = xform(get_viewport().get_canvas_transform().affine_inverse(), get_viewport().get_mouse_position())
+	action_triggered.emit(action)
 
 #	_FORCE_INLINE_ real_t tdotx(const Vector2 &p_v) const { return columns[0][0] * p_v.x + columns[1][0] * p_v.y; }
 static func tdotx(mat, vec):
@@ -28,10 +41,11 @@ Output format is the following:
 	action["intent"]: vector: intent of user control in 2D space (up, down, left right). Vector values are either -1, 0 or 1
 	action["boost_initiated"]: boolean value for the activation of the ships booster
 	action["boost_released"]: boolean value for the de-activation of the ships booster ( not stored in temporal records )
-	action["pewpew"]: (if present) the global position where the laser points to when fired
-	action["pewpew_target"]: (if present) the target object to which the laser is supposed to be fired
+	action["pewpew_initiated"]: boolean value for weapon activation
+	action["pewpew_released"]: boolean value for weapon deactivation
+	action["pewpew_target"]: the target object to which the laser is supposed to be fired
 """
-static func get_action(viewport, input_event):
+static func get_action(input_event):
 	var action = Dictionary()
 	var intent_direction = Vector2(
 		(-1. if input_event.is_action_pressed("left") else 0. + 1. if input_event.is_action_pressed("right") else 0.),\
@@ -46,8 +60,10 @@ static func get_action(viewport, input_event):
 		action["intent"] = intent_direction
 
 	if(input_event.is_action_pressed("pewpew")):
-		var global_mouse_pos = xform(viewport.get_canvas_transform().affine_inverse(), viewport.get_mouse_position())
-		action["pewpew"] = global_mouse_pos
+		action["pewpew_initiated"] = true
+
+	if(input_event.is_action_released("pewpew")):
+		action["pewpew_released"] = true
 
 	if input_event.is_action_pressed("boost"):
 		action["boost_initiated"] = true
@@ -60,6 +76,5 @@ static func get_action(viewport, input_event):
 		input_event is InputEventKey and input_event.pressed and not input_event.echo
 		and input_event.physical_keycode >= KEY_1 and input_event.physical_keycode <= KEY_4
 	):
-		action["weapon_slot"] = input_event.physical_keycode - KEY_1 + 1
-
+		action["weapon_slot"] = input_event.physical_keycode - KEY_1
 	return action

@@ -1,4 +1,4 @@
-extends Node2D
+extends BattleShipWeapon
 
 class ChainHit:
 	var from_pos: Vector2
@@ -26,10 +26,10 @@ class ChainSegment:
 		cached_from = Vector2.ZERO
 		cached_to = Vector2.ZERO
 
+@export var wielder: BattleCharacter
 @export var chain_radius: float = 300.0
 @export var max_bounces: int = 4
 @export_range(0.0, 1.0) var damage_falloff: float = 0.75  # 25% reduction per jump
-@export var base_damage: float = 1.0
 
 var firing: bool = false
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
@@ -121,7 +121,7 @@ func _perform_first_hit(space_state: PhysicsDirectSpaceState2D, current_pos: Vec
 
 	var victim = result["collider"]
 	if victim.has_method("accept_damage"):
-		victim.accept_damage(base_damage, get_parent())
+		victim.accept_damage(base_damage, wielder)
 
 	return {"from": current_pos, "to": result["position"], "victim": victim, "damage": base_damage}
 
@@ -137,7 +137,7 @@ func _perform_chain_bounce(space_state: PhysicsDirectSpaceState2D, current_pos: 
 	if raycast_result.is_empty() or raycast_result.get("collider") != next_target:
 		return {}
 
-	next_target.accept_damage(current_damage, get_parent())
+	next_target.accept_damage(current_damage, wielder)
 	return {
 		"from": current_pos,
 		"to": raycast_result["position"],
@@ -173,8 +173,7 @@ func _is_valid_chain_target(combatant: Node2D, exclude: Array, my_team: Node) ->
 
 func _find_next_chain_target(from_pos: Vector2, exclude: Array) -> Node2D:
 	"""Find the nearest valid chain target within radius."""
-	var character = get_parent()
-	var my_team = character.get_node("team") if character.has_node("team") else null
+	var my_team = wielder.get_node("team") if wielder.has_node("team") else null
 	var candidates: Array[Dictionary] = []
 
 	for combatant in get_tree().get_nodes_in_group("combatants"):

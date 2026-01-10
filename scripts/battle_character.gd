@@ -3,6 +3,8 @@ class_name BattleCharacter extends CharacterBody2D
 signal health_changed(percentage: float)
 signal dead(BattleCharacter)
 signal resurrected(BattleCharacter)
+signal boost_energy_updated(new_energy_level: float)
+signal weapon_energy_updated(new_energy_level: float)
 
 @export var approx_size: float = 100.
 @export var team_id: int = 0
@@ -66,8 +68,8 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 		)
 		tween.finished.connect(func(): clone.queue_free())
 
-
 func init_clone(predecessor: BattleCharacter) -> void:
+	spawn_position = predecessor.spawn_position
 	ship_explosion = null
 	team_id = predecessor.team_id
 	skin_layers = predecessor.skin_layers # set skin from predecessor(_ready will construct the skin)
@@ -199,11 +201,8 @@ func accept_damage(strength: float, source: BattleCharacter = null) -> void:
 	else:
 		explosion_shake()
 
-func move_to_spawn_position():
-	set_global_position(spawn_position)
-
 func respawn():
-	move_to_spawn_position()
+	set_global_position(spawn_position)
 	set_velocity(Vector2())
 	set_collision_layer_value(1, true)
 	set_visible(true)
@@ -221,6 +220,8 @@ func respawn():
 			$replayer.msec_records.merge(records["motion"])
 	if has_node("replayer"):
 		$replayer.reset()
+	if has_node("weapon_slot"):
+		$weapon_slot.reset()
 	extend_replayer = false
 	was_alive = true
 
@@ -253,22 +254,15 @@ func resume_control() -> void:
 func process_input_action(action: Dictionary) -> void:
 	if "weapon_slot" in action and has_node("weapon_slot"):
 		$weapon_slot.select_slot(action["weapon_slot"])
+		action["pewpew_released"] = true
 
 	if(control_enabled):
-		if (has_node("energy_systems")):
+		if has_node("energy_systems"):
 			if "boost_initiated" in action and not $energy_systems.has_boost_energy():
 				action.erase("boost_initiated")
-
-			# Check energy based on weapon cost
-			var energy_cost = 1
-			if has_node("weapon_slot"):
-				energy_cost = $weapon_slot.get_energy_cost()
-			if not $energy_systems.has_laser_energy_for(energy_cost) and "pewpew" in action:
+			if  "pewpew" in action and not $energy_systems.has_weapon_energy():
 				action.erase("pewpew")
-			elif "pewpew" in action:
-				action["energy_cost"] = energy_cost
-				if has_node("weapon_slot"):
-					action["weapon_slot"] = $weapon_slot.current_slot
+				action["pewpew_released"] = true
 		
 		if "pewpew" in action and $"../../target_assist".is_target_locked():
 			action["pewpew"] = $"../../target_assist".get_current_target_position()
@@ -298,30 +292,13 @@ func process_input_action(action: Dictionary) -> void:
 		action["pewpew"] = action["pewpew_target"].get_global_position()
 
 	$controller.process_input_action(action)
-	_dispatch_weapon_action(action)
-
-	if has_node("temporal_recorder"):
-		$temporal_recorder.process_input_action(action)
 	if has_node("energy_systems"):
 		$energy_systems.process_input_action(action)
+	if has_node("weapon_slot"):
+		$weapon_slot.process_input_action(action)
+	if has_node("temporal_recorder"):
+		$temporal_recorder.process_input_action(action)
 
-func _dispatch_weapon_action(action: Dictionary) -> void:
-	var weapon_name: String
-	if "weapon_slot" in action:
-		var slot = action["weapon_slot"]
-		if has_node("weapon_slot"):
-			weapon_name = $weapon_slot.weapons.get(slot, {}).get("name", "laser_beam")
-		else:
-			weapon_name = "laser_beam"
-	elif has_node("weapon_slot"):
-		weapon_name = $weapon_slot.get_weapon_name()
-	else:
-		weapon_name = "laser_beam"
-
-	if has_node(weapon_name):
-		get_node(weapon_name).process_input_action(action)
-	elif has_node("laser_beam"):
-		$laser_beam.process_input_action(action)
 
 func explosion_shake(intensity: float = 30.0, duration: float = 0.5, frequency: int = 20) -> void:
 	if not has_node("cam"):
@@ -372,3 +349,9 @@ func _on_controller_boosting(is_boosting: bool) -> void:
 	$thruster_fx.visible = not is_boosting
 	if is_boosting: $booster_sound.play()
 	else: $booster_sound.stop()
+
+func _on_energy_systems_boost_energy_updated(new_energy_level: float) -> void:
+	boost_energy_updated.emit(new_energy_level)
+
+func _on_energy_systems_weapon_energy_updated(new_energy_level: float) -> void:
+	weapon_energy_updated.emit(new_energy_level)

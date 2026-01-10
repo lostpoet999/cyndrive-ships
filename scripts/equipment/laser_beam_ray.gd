@@ -1,31 +1,69 @@
-extends Node2D
+class_name BattleShipLaser extends BattleShipWeapon
 
-var pewpew: bool = false
-var pewpew_ready: bool = false
-var target_position: Vector2 = Vector2()
+@export var warmup_damage_modifier: float = 0.35
+@export var ray_warmup_width: float = 5
+@export var ray_full_width: float = 10
+@export var warmup_time_sec: float = 0.25
+@export var shutdown_time_sec: float = 0.15
+@export var target_time_sec: float = 0.01
+
+func shutdown() -> void:
+	# TECHDEBT: In case the laser is released before warmup, the tweens get in conflict, so wait until at least the warmup is finished
+	await get_tree().create_timer(warmup_time_sec).timeout
+	create_tween().tween_method(func(a): $beam_line.self_modulate.a = a, $beam_line.self_modulate.a, 0., shutdown_time_sec)
+	var laser_ray_tween = create_tween()
+	laser_ray_tween.tween_property($beam_line, "width", ray_full_width * 2., shutdown_time_sec)
+	laser_ray_tween.tween_callback(func() :
+		$beam_line.width = 0.
+		is_shooting = false
+	)
+	laser_ray_tween.chain()
+
+func reset() -> void:
+	shutdown()
+	is_shooting = false
+	was_shooting = false
+	current_strength_modifier = 1.
+
+var current_strength_modifier: float = 1.
+var is_shooting: bool = false
+var was_shooting: bool = false
+var pewpew_target: Vector2 = Vector2()
 func process_input_action(action: Dictionary) -> void:
 	if "pewpew" in action:
-		target_position = action["pewpew"]
-		pewpew = true
-		pewpew_ready = false
+		create_tween().tween_method(func(pos): pewpew_target = pos, pewpew_target, action["pewpew"], target_time_sec)
 
-func _physics_process(_delta):
-	$beam_line.points[0] = get_global_position()
-	if pewpew:
-		$beam_line.points[1] = get_global_position() + (target_position - get_global_position()) * 5000.
-		var space_state = get_world_2d().direct_space_state
-		var laser_raycast_result = space_state.intersect_ray(PhysicsRayQueryParameters2D.create(
-			get_global_position(), $beam_line.points[1]
-		))
-		if laser_raycast_result.has("collider"):
-			$sound.play()
-			var victim = laser_raycast_result.collider
+	is_shooting = (
+		(is_shooting and (not "pewpew_released" in action or not action["pewpew_released"]))
+		or ("pewpew_initiated" in action and action["pewpew_initiated"])
+	)
+	if is_shooting:
+		$sound.play()
+
+		if null != $raycast.get_collider():
+			var victim = $raycast.get_collider()
 			if victim.has_method("accept_damage"):
-				victim.accept_damage(1., get_parent())
-			$beam_line.points[1] = laser_raycast_result.position
-		var tween = create_tween()
-		tween.tween_property($beam_line, "width", 20, 0.05)
-		tween.tween_property($beam_line, "width", 0, 0.07)
-		tween.chain()
-		pewpew = false
-	
+				victim.accept_damage(base_damage * current_strength_modifier, get_parent())
+
+		if not was_shooting: # Laser alpha and width animation
+			current_strength_modifier = warmup_damage_modifier
+			create_tween().tween_property(self, "current_strength_modifier", warmup_damage_modifier, 1.)
+			create_tween().tween_method(func(a): $beam_line.self_modulate.a = a, 0., 1., warmup_time_sec)
+			var laser_ray_tween = create_tween()
+			laser_ray_tween.tween_property($beam_line, "width", ray_warmup_width, warmup_time_sec)
+			laser_ray_tween.tween_property($beam_line, "width", ray_full_width, warmup_time_sec)
+			laser_ray_tween.chain()
+	elif was_shooting: # Laser alpha and width animation
+		shutdown()
+	was_shooting = is_shooting
+
+func hit_position() -> Vector2:
+	if $raycast.is_colliding():
+		return $raycast.get_collision_point()
+	return $raycast.target_position
+
+func _physics_process(_delta: float) -> void:
+	$beam_line.points[0] = get_global_position()
+	$beam_line.points[1] = hit_position()
+	$raycast.set_global_position(get_global_position())
+	$raycast.target_position = get_global_position() + (pewpew_target - get_global_position()) * 1000.

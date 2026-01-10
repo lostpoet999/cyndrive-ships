@@ -2,34 +2,33 @@ class_name WeaponSlot extends Node
 
 signal weapon_changed(slot: int)
 
-const MAX_SLOTS: int = 4
-var current_slot: int = 1  # 1-indexed to match keys
+@export var weapons: Array[BattleShipWeapon]
+var current_slot: int = 0
 
-var weapons: Dictionary = {
-	1: { "name": "laser_beam", "energy_cost": 1 },
-	2: { "name": "chain_lightning", "energy_cost": 3 },
-	3: {},
-	4: {},
-}
+func reset() -> void:
+	if null != weapons[current_slot] and "reset" in weapons[current_slot]:
+		weapons[current_slot].reset()
 
 func select_slot(slot: int) -> void:
-	if slot < 1 or slot > MAX_SLOTS:
+	if( # Slot not within bounds
+		slot < 0 or slot >= weapons.size()
+		# Weapon not unlocked or alreeady selected
+		or weapons[slot] == null or current_slot == slot
+	):
 		return
-	if weapons[slot] == null:
-		return  # Weapon not unlocked
-	if current_slot == slot:
-		return  # Already selected
+	if "shutdown" in weapons[current_slot]:
+		weapons[current_slot].shutdown()
 	current_slot = slot
 	weapon_changed.emit(slot)
 
 func get_weapon_name() -> String:
-	return weapons[current_slot]["name"] if weapons[current_slot] else ""
+	if weapons[current_slot]: return weapons[current_slot].name 
+	else: return "UNDEFINED"
 
-func get_energy_cost() -> int:
-	return weapons[current_slot]["energy_cost"] if weapons[current_slot] else 1
+func get_energy_cost() -> float:
+	if weapons[current_slot]: return weapons[current_slot].energy_cost
+	else: return 1.
 
-func is_laser() -> bool:
-	return current_slot == 1
-
-func is_chain_lightning() -> bool:
-	return current_slot == 2
+func process_input_action(action: Dictionary) -> void:
+	if null != weapons[current_slot]:
+		weapons[current_slot].process_input_action(action)

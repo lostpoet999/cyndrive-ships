@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=57 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle/player_input.gd" id="2_4u087"]
@@ -16,7 +16,7 @@
 [ext_resource type="LabelSettings" uid="uid://cihvmag3ppi8c" path="res://resources/highlighted_text_font.tres" id="7_mpb26"]
 [ext_resource type="LabelSettings" uid="uid://dbv6lunqh8d5t" path="res://resources/dimmed_text_font.tres" id="8_4u087"]
 [ext_resource type="Shader" uid="uid://rsuxn1jhme0d" path="res://shaders/rewind.gdshader" id="9_61i1y"]
-[ext_resource type="Script" path="res://scripts/status_container.gd" id="10_fpf3k"]
+[ext_resource type="Script" uid="uid://ba0vnf5082iwk" path="res://scripts/status_container.gd" id="10_fpf3k"]
 [ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/effects/energy_bar_control.tscn" id="10_saiin"]
 [ext_resource type="Texture2D" uid="uid://ci1a1of5pn6u" path="res://textures/ui/panel_tileset.png" id="12_1m01a"]
 [ext_resource type="Texture2D" uid="uid://026apoj7buxx" path="res://textures/ui/restart_button_up.png" id="13_e50ek"]
@@ -29,10 +29,9 @@
 [ext_resource type="PackedScene" uid="uid://b2el5b6ucyivj" path="res://scenes/player_carrier.tscn" id="16_61i1y"]
 [ext_resource type="Texture2D" uid="uid://c17117io8ilgk" path="res://textures/player_carrier_top.png" id="17_dd63g"]
 [ext_resource type="Texture2D" uid="uid://5ffs6v6ii1g8" path="res://textures/ui/CHAIN_LIGHTNING_ICON.png" id="19_mpb26"]
-[ext_resource type="Script" uid="uid://cdrsm7mlhnmnm" path="res://scripts/equipment/energy_systems.gd" id="21_dd63g"]
 [ext_resource type="Texture2D" uid="uid://dfg1j5w5e5k8y" path="res://textures/fighter-ship-base.png" id="21_jt4d8"]
 [ext_resource type="Texture2D" uid="uid://o42ke22r8jvm" path="res://textures/player_carrier_bottom.png" id="24_lv4so"]
-[ext_resource type="Script" uid="uid://cud6a5voxneed" path="res://battleship_skin.gd" id="25_eivww"]
+[ext_resource type="Script" uid="uid://cud6a5voxneed" path="res://battle_ship_skin.gd" id="25_eivww"]
 [ext_resource type="Texture2D" uid="uid://cm6fobaf78bk1" path="res://textures/battle_ship.png" id="25_lv4so"]
 [ext_resource type="Texture2D" uid="uid://bs8ao20cjqgpr" path="res://textures/fighter-ship-accent.png" id="30_at2n2"]
 
@@ -343,7 +342,7 @@ script = ExtResource("10_fpf3k")
 
 [node name="laser_energy" parent="GUI/status_padding/VBoxContainer/battleship_status" instance=ExtResource("10_saiin")]
 layout_mode = 2
-label_text = "Laser"
+label_text = "Weapons"
 
 [node name="boost_energy" parent="GUI/status_padding/VBoxContainer/battleship_status" instance=ExtResource("10_saiin")]
 layout_mode = 2
@@ -551,9 +550,6 @@ target_position = Vector2(0, 0)
 script = ExtResource("4_3fx1x")
 rotation_speed = 0.05
 
-[node name="energy_systems" type="Node2D" parent="combatants/character"]
-script = ExtResource("21_dd63g")
-
 [node name="enemy" parent="combatants" instance=ExtResource("2_sm623")]
 position = Vector2(1011, 194)
 rotation = 3.14159
@@ -678,6 +674,6 @@ script = ExtResource("5_3g8p0")
 [connection signal="pressed" from="GUI/restart_round_panel/TextureButton" to="." method="restart_round"]
 [connection signal="body_entered" from="target_assist" to="target_assist" method="_on_body_entered"]
 [connection signal="body_exited" from="target_assist" to="target_assist" method="_on_body_exited"]
+[connection signal="boost_energy_updated" from="combatants/character" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_boost_energy_updated"]
 [connection signal="health_changed" from="combatants/character" to="GUI/sensors_display" method="set_health_percentage"]
-[connection signal="boost_energy_updated" from="combatants/character/energy_systems" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_boost_energy_updated"]
-[connection signal="laser_energy_updated" from="combatants/character/energy_systems" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_laser_energy_updated"]
+[connection signal="weapon_energy_updated" from="combatants/character" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_weapon_energy_updated"]

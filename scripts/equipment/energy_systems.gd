@@ -1,60 +1,63 @@
 class_name EnergySystems extends Node
 
-@export var max_boost: int = 10
-@export var max_laser: int = 10
+signal boost_energy_updated(new_energy_level: float)
+signal weapon_energy_updated(new_energy_level: float)
+
+@export var max_boost: float = 10.
+@export var boost_recharge_per_sec: float = 10.
+@export var max_weapon: float = 10.
+@export var weapon_recharge_per_sec: float = 10.
+@export var weapon_system: WeaponSlot
 
 func temporal_snapshot() -> Dictionary:
-	return { "laser_energy": laser_energy_remaining, "boost_energy": boost_energy_remaining }
+	return { "weapon_energy": weapon_energy_remaining, "boost_energy": boost_energy_remaining }
 
 func temporal_correction(snapshot: Dictionary) -> void:
-	if "laser_energy" in snapshot:
-		laser_energy_remaining = snapshot["laser_energy"]
+	if "weapon_energy" in snapshot:
+		weapon_energy_remaining = snapshot["weapon_energy"]
 	if "boost_energy" in snapshot:
 		boost_energy_remaining = snapshot["boost_energy"]
 
 func _ready() -> void:
-	laser_energy_updated.emit(laser_energy_remaining)
+	weapon_energy_updated.emit(weapon_energy_remaining)
 	boost_energy_updated.emit(boost_energy_remaining)
 
 func reset() -> void:
 	boost_energy_remaining = max_boost
-	laser_energy_remaining = max_laser
-	laser_energy_updated.emit(laser_energy_remaining)
+	weapon_energy_remaining = max_weapon
+	weapon_energy_updated.emit(weapon_energy_remaining)
 	boost_energy_updated.emit(boost_energy_remaining)
 
 # called from the function by the same name in the battle_character script
-var is_lasering: bool
-var pending_energy_cost: int = 1
+var is_weaponing: bool = false
+var pending_energy_cost: float = 1
 func process_input_action(action) -> void:
-	is_lasering = "pewpew" in action
-	if is_lasering:
-		pending_energy_cost = action.get("energy_cost", 1)
+	is_weaponing = (
+		(is_weaponing and (not "pewpew_released" in action or not action["pewpew_released"]))
+		or ("pewpew_initiated" in action and action["pewpew_initiated"])
+	)
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-var was_lasering = false
+var was_weaponing: bool = false
 func _process(delta: float) -> void:
-	
 	if $"../controller".is_boosting: _drain_boost(delta)
 	else: _recharge_boost(delta)
-	
-	if is_lasering and not was_lasering: _update_laser_energy(-pending_energy_cost)
-	else: _recharge_laser(delta)
-	
-	was_lasering = is_lasering
+	if is_weaponing: _update_weapon_energy(-weapon_system.get_energy_cost())
+	else: _recharge_weapon(delta)
+	was_weaponing = is_weaponing
 
-######	
+######
 #BOOST
-var boost_energy_remaining: int = max_boost
-signal boost_energy_updated(new_energy_level: int)
+var boost_energy_remaining: float = max_boost
 
 #Update
 func _update_boost_energy(bars: int):
-	boost_energy_remaining = clamp(boost_energy_remaining + bars, 0, max_boost)
+	boost_energy_remaining = round(clamp(boost_energy_remaining + bars, 0, max_boost))
 	boost_energy_updated.emit(boost_energy_remaining)
 
 #Drain
 var boost_time = 0.0
-func _drain_boost(delta) -> void:
+func _drain_boost(delta: float) -> void:
 	const boost_depletion_per_second = 8
 	var time_to_one_bar = (1.0 / boost_depletion_per_second)
 	boost_time += delta
@@ -78,28 +81,24 @@ func has_boost_energy() -> bool:
 	return boost_energy_remaining > 0
 	
 ######
-#LASER
-var laser_energy_remaining: int = max_laser
-signal laser_energy_updated(new_energy_level: int)
+#weapon
+var weapon_energy_remaining: float = max_weapon
 
 #Update
-func _update_laser_energy(bars: int):
-	laser_energy_remaining = clamp(laser_energy_remaining + bars, 0, max_laser)
-	laser_energy_updated.emit(laser_energy_remaining)
+func _update_weapon_energy(bars: float) -> void:
+	weapon_energy_remaining = clamp(weapon_energy_remaining + bars, 0, max_weapon)
+	weapon_energy_updated.emit(weapon_energy_remaining)
 	
 #Recharge
-var laser_recharge_time = 0.0
-func _recharge_laser(delta: float) -> void:
-	const laser_recharge_per_second = 1
-	laser_recharge_time += delta
-	var time_to_one_bar = (1.0 / laser_recharge_per_second)
-	if (laser_recharge_time < time_to_one_bar): return
-	laser_recharge_time = laser_recharge_time - time_to_one_bar
-	if laser_energy_remaining < max_laser: _update_laser_energy(1)
+var weapon_recharge_time = 0.0
+func _recharge_weapon(delta: float) -> void:
+	const weapon_recharge_per_second: float = 1
+	weapon_recharge_time += delta
+	var time_to_one_bar = (1.0 / weapon_recharge_per_second)
+	if (weapon_recharge_time < time_to_one_bar): return
+	weapon_recharge_time = weapon_recharge_time - time_to_one_bar
+	if weapon_energy_remaining < max_weapon: _update_weapon_energy(1)
 	
 #Check
-func has_laser_energy() -> bool:
-	return laser_energy_remaining > 0
-
-func has_laser_energy_for(cost: int) -> bool:
-	return laser_energy_remaining >= cost
+func has_weapon_energy() -> bool:
+	return weapon_energy_remaining > weapon_system.get_energy_cost()
