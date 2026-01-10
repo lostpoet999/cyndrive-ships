@@ -163,7 +163,7 @@ func _process(_delta):
 			#erase a previous explosion if there was any
 			if ship_explosion == null:
 				ship_explosion = explosion_template.instantiate().duplicate()
-				get_tree().get_root().add_child(ship_explosion)
+				$"../../explosions".add_child(ship_explosion)
 			ship_explosion.reinit()
 			ship_explosion.set_global_position(get_global_position())
 			was_alive = false

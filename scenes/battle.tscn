@@ -404,10 +404,30 @@ visible = false
 position = Vector2(1024, 610)
 texture = ExtResource("14_eivww")
 
+[node name="TextureButton" type="TextureButton" parent="GUI/victory"]
+offset_left = -341.0
+offset_top = 163.0
+offset_right = 171.0
+offset_bottom = 291.0
+texture_normal = ExtResource("13_e50ek")
+texture_pressed = ExtResource("14_mpb26")
+texture_hover = ExtResource("15_4u087")
+stretch_mode = 4
+
 [node name="defeat" type="Sprite2D" parent="GUI"]
 visible = false
 position = Vector2(1069, 618)
 texture = ExtResource("15_rwtbh")
+
+[node name="TextureButton" type="TextureButton" parent="GUI/defeat"]
+offset_left = -345.0
+offset_top = 135.0
+offset_right = 167.0
+offset_bottom = 263.0
+texture_normal = ExtResource("13_e50ek")
+texture_pressed = ExtResource("14_mpb26")
+texture_hover = ExtResource("15_4u087")
+stretch_mode = 4
 
 [node name="ChainLightningIcon" type="Sprite2D" parent="GUI"]
 position = Vector2(814, 1012)
@@ -670,8 +690,12 @@ skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), Sub
 rotation = 3.14159
 script = ExtResource("5_3g8p0")
 
+[node name="explosions" type="Node" parent="."]
+
 [connection signal="action_triggered" from="player_input" to="combatants/character" method="process_input_action"]
 [connection signal="pressed" from="GUI/restart_round_panel/TextureButton" to="." method="restart_round"]
+[connection signal="pressed" from="GUI/victory/TextureButton" to="." method="reset_game"]
+[connection signal="pressed" from="GUI/defeat/TextureButton" to="." method="reset_game"]
 [connection signal="body_entered" from="target_assist" to="target_assist" method="_on_body_entered"]
 [connection signal="body_exited" from="target_assist" to="target_assist" method="_on_body_exited"]
 [connection signal="boost_energy_updated" from="combatants/character" to="GUI/status_padding/VBoxContainer/battleship_status" method="_on_energy_systems_boost_energy_updated"]

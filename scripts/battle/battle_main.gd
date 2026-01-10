@@ -50,6 +50,12 @@ func reset_health_display() -> void:
 	$GUI/sensors_display.expose_health(0.5)
 	create_tween().tween_method($GUI/sensors_display.set_health_percentage, 0., 1., round_start_delay_sec)
 
+func reset_game() -> void:
+	$GUI/sensors_display.set_sonar_visibility(true)
+	for explosion in $explosions.get_children():
+		explosion.queue_free()
+	get_tree().call_deferred("reload_current_scene")
+
 func restart_round() -> void:
 	# Handle resource changes with round restart
 	current_laupeerium -= 1.
