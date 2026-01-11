@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://b2el5b6ucyivj"]
+[gd_scene load_steps=17 format=3 uid="uid://b2el5b6ucyivj"]
 
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_ny2j2"]
 [ext_resource type="Script" uid="uid://cb5wlskdaf6ig" path="res://scripts/skin.gd" id="2_i8lxl"]
@@ -12,6 +12,7 @@
 [ext_resource type="AudioStream" uid="uid://rps6evxmvrsb" path="res://audio/explosion_01.wav" id="11_a3wjc"]
 [ext_resource type="AudioStream" uid="uid://dajttw71kitgt" path="res://audio/explosion_001.wav" id="12_55my7"]
 [ext_resource type="AudioStream" uid="uid://besa8dwtnwqwy" path="res://audio/explosion_002.wav" id="13_14t5u"]
+[ext_resource type="Script" uid="uid://dglqu1ynocp45" path="res://scripts/equipment/healing_aura.gd" id="14_5fyrk"]
 [ext_resource type="AudioStream" uid="uid://bcnnssuecafi" path="res://audio/explosion_003.wav" id="14_em532"]
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_d16w7"]
@@ -20,6 +21,9 @@ stream_0/stream = ExtResource("11_a3wjc")
 stream_1/stream = ExtResource("12_55my7")
 stream_2/stream = ExtResource("13_14t5u")
 stream_3/stream = ExtResource("14_em532")
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_d02ko"]
+radius = 450.0
 
 [node name="player_carrier" type="CharacterBody2D"]
 script = ExtResource("1_ny2j2")
@@ -68,3 +72,12 @@ autoplay = true
 
 [node name="explosion_sound" type="AudioStreamPlayer2D" parent="."]
 stream = SubResource("AudioStreamRandomizer_d16w7")
+
+[node name="healing_aura" type="Area2D" parent="."]
+script = ExtResource("14_5fyrk")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="healing_aura"]
+shape = SubResource("CircleShape2D_d02ko")
+
+[connection signal="body_entered" from="healing_aura" to="healing_aura" method="_on_body_entered"]
+[connection signal="body_exited" from="healing_aura" to="healing_aura" method="_on_body_exited"]

@@ -9,10 +9,10 @@ signal weapon_energy_updated(new_energy_level: float)
 @export var approx_size: float = 100.
 @export var team_id: int = 0
 @export var spawn_position: Vector2 = Vector2()
-@export var central_ship: bool = false
 @export var color: Color = Color.from_rgba8(0,0,0,0)
 @export var skin_layers: Array[BattleShipSkin] = []
 @export var starting_health: float = 10.
+@export var max_health: float = 12.
 @export var target_assist_shape: CollisionShape2D
 @export var temporal_correction_distance_threshold: float = approx_size / 2.
 @export_range(0., 200.) var mass: float = 10.
@@ -122,6 +122,8 @@ var ship_explosion : ShipExplosion
 var explosion_template = preload("res://scenes/effects/explosion-firey.tscn")
 var zoom_value = 0.4
 func _process(_delta):
+	if has_node("repair_indicator"):
+		$repair_indicator.set_global_position(get_global_position() - $repair_indicator.size * 0.55)
 	# Play thruster sound when ship is being steered
 	if (
 		0. < $controller.intent_direction.length() and in_battle()
@@ -200,6 +202,9 @@ func accept_damage(strength: float, source: BattleCharacter = null) -> void:
 		explosion_shake_smooth()
 	else:
 		explosion_shake()
+
+func accept_healing(strength: float, _source: BattleCharacter = null) -> void:
+	$health.accept_healing(strength)
 
 func respawn():
 	set_global_position(spawn_position)

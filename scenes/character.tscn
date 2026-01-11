@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3 uid="uid://bxvkgl6pp7mn0"]
+[gd_scene load_steps=26 format=3 uid="uid://bxvkgl6pp7mn0"]
 
 [ext_resource type="Script" uid="uid://cevqshtxu2y2l" path="res://scripts/equipment/controllable2d.gd" id="1_4dcfn"]
 [ext_resource type="Script" uid="uid://b4yck7dcr2mqg" path="res://scripts/battle_character.gd" id="1_gqnfm"]
@@ -15,6 +15,7 @@
 [ext_resource type="AudioStream" uid="uid://dajttw71kitgt" path="res://audio/explosion_001.wav" id="18_cicko"]
 [ext_resource type="AudioStream" uid="uid://besa8dwtnwqwy" path="res://audio/explosion_002.wav" id="19_bj47h"]
 [ext_resource type="AudioStream" uid="uid://bcnnssuecafi" path="res://audio/explosion_003.wav" id="20_4lh0q"]
+[ext_resource type="Shader" uid="uid://djx4bom2edoc6" path="res://shaders/repairs.gdshader" id="20_u0pwc"]
 [ext_resource type="AudioStream" uid="uid://bokt2np2jc03c" path="res://audio/engine_booster.wav" id="21_cicko"]
 [ext_resource type="Script" uid="uid://l6vctxv60i5k" path="res://scripts/battle/temporal_recorder.gd" id="22_bj47h"]
 [ext_resource type="Script" uid="uid://co4eimc5mgx3i" path="res://scripts/equipment/weapon_slot.gd" id="23_weaponslot"]
@@ -23,6 +24,16 @@
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_k8udw"]
 radius = 15.0
 height = 60.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_cicko"]
+shader = ExtResource("20_u0pwc")
+shader_parameter/glow_intensity = 1.8060000825251201
+shader_parameter/glow_speed = 0.10000000149012
+shader_parameter/radial_glow = 1.434000020615
+shader_parameter/glow_color = Color(0.19999999, 1, 0.30666673, 0.5921569)
+shader_parameter/wave_count = 6.1630002452425
+shader_parameter/wave_spacing = 0.23300000780762
+shader_parameter/pixel_size = 8.0000003325
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_i0gp7"]
 
@@ -48,6 +59,23 @@ shape = SubResource("CapsuleShape2D_k8udw")
 [node name="controller" type="Node2D" parent="."]
 script = ExtResource("1_4dcfn")
 momentum_dampener = 0.85
+
+[node name="repair_indicator" type="ColorRect" parent="."]
+visible = false
+top_level = true
+z_index = -5
+material = SubResource("ShaderMaterial_cicko")
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -128.0
+offset_right = 128.0
+offset_bottom = 128.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="skin" type="Node2D" parent="."]
 script = ExtResource("4_u0pwc")

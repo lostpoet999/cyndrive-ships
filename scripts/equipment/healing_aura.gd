@@ -1,0 +1,27 @@
+extends Area2D
+
+@export var healing_power: float = 0.5
+@export var strength_over_time: float = 0.005
+
+var ships_within_aura: Dictionary = {}
+@onready var character: BattleCharacter = get_parent()
+
+func _on_body_entered(body: Node2D) -> void:
+	if(
+		body != character
+		and body.has_node("team") and not body.get_node("team").is_enemy(character.get_node("team"))
+	):
+		ships_within_aura[body] = BattleTimeline.instance.time_msec()
+		if body.has_node("repair_indicator"):
+			body.get_node("repair_indicator").set_visible(true)
+
+func _on_body_exited(body: Node2D) -> void:
+	if body.has_node("repair_indicator"):
+		body.get_node("repair_indicator").set_visible(false)
+	ships_within_aura.erase(body)
+
+func _process(delta: float) -> void:
+	for ship in ships_within_aura:
+		if not ship.has_node("health"): continue
+		var effect_strength = abs(BattleTimeline.instance.time_since_msec(ships_within_aura[ship])) * strength_over_time
+		ship.accept_healing(healing_power * effect_strength * delta)
