@@ -112,7 +112,7 @@ func _process(delta: float) -> void:
 		else:
 			break
 
-	# Apply position correction
+	# Apply temporal state correction
 	if(
 		not corrected_in_this_physics_loop
 		and abs(current_msec_records_key) < msec_records.keys().size()
@@ -122,7 +122,13 @@ func _process(delta: float) -> void:
 			or abs(BattleTimeline.instance.time_since_msec(last_corrected)) > (1000. / corrections_per_second)
 		)
 	):
-		ship.correct_temporal_state(msec_records[msec_records.keys()[current_msec_records_key]], delta_to_current_msec_records)
+		var snapshot_to_apply = msec_records[msec_records.keys()[current_msec_records_key]]
+		if( # Do not apply health during replays, only when reversing!
+			"health" in snapshot_to_apply
+			and BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.FORWARD
+		):
+			snapshot_to_apply.erase("health")
+		ship.correct_temporal_state(snapshot_to_apply, delta_to_current_msec_records)
 		last_corrected = BattleTimeline.instance.time_msec()
 		current_msec_records_key += BattleTimeline.instance.time_flow
 		corrected_in_this_physics_loop = true
