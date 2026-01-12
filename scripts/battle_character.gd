@@ -19,6 +19,11 @@ signal weapon_energy_updated(new_energy_level: float)
 
 var target_assist_original_size: float = 150.
 func _ready() -> void:
+	if FeatureFlags.is_enabled("new_player_control") and name == "character":
+		$controller.set_script(preload("res://scripts/equipment/player_motion_control.gd"))
+		$controller.character = self
+		$controller.team = $team
+
 	add_to_group("combatants")
 	$team.initialize(team_id, spawn_position, color)
 	$skin.init_skin(skin_layers, $team.color)

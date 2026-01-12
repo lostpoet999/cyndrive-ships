@@ -54,36 +54,6 @@ The function provides the x value for the given y value(speed).
 """
 func get_decel_x(speed: float) -> float:
 	return sqrt(stop_resistance * speed)
-	
-"""
-Accepts an inputevent and reconstructs an intent vector from it, based on the implementation in:
-Input.get_vector("left", "right", "up", "down")
---> https://github.com/godotengine/godot/blob/a586e860e5fc382dec4ad9a0bec72f7c6684f020/core/input/input.cpp#L382
-"""
-func get_vector(event: InputEvent, p_deadzone: float = -1.) -> Vector2:
-	var vector: Vector2 = Vector2( \
-		event.get_action_strength("right") - event.get_action_strength("left"), \
-		event.get_action_strength("down") - event.get_action_strength("up"), \
-	)
-	
-	var deadzone: float = p_deadzone
-	if deadzone < 0.:
-		# If the deadzone isn't specified, get it from the average of the actions.
-		deadzone = 0.25 * (
-			InputMap.action_get_deadzone("left")
-			+ InputMap.action_get_deadzone("right")
-			+ InputMap.action_get_deadzone("up")
-			+ InputMap.action_get_deadzone("down")
-		);
-	
-	# Circular lentgh limiting and deadzone
-	var length: float = vector.length()
-	if(length <= deadzone):
-		return Vector2()
-	elif(length > 1.):
-		return vector / length
-	else:
-		return vector * inverse_lerp(deadzone, 1. , length) / length
 
 func start() -> void:
 	enabled = true
@@ -112,7 +82,7 @@ func process_input_action(action: Dictionary) -> void:
 	if was_boosting != is_boosting: boosting.emit(is_boosting)
 
 @onready var last_position = get_global_position()
-func _physics_process(_delta):
+func _physics_process(_delta: float) -> void:
 	if not enabled or BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.BACKWARD:
 		return
 
