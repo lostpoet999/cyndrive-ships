@@ -344,3 +344,4 @@ func _on_replay_button_pressed() -> void:
 	$combatants/character.queue_free()
 	$replay_camera.make_current()
 	$target_assist.set_disabled(true)
+	$GUI/sensors_display.hide_health(0.5)
