@@ -1,0 +1,96 @@
+[gd_scene load_steps=7 format=4 uid="uid://dwxo210cmq3jj"]
+
+[ext_resource type="Script" uid="uid://2v4bgsoiqlsv" path="res://scripts/dialogue.gd" id="1_3n4vj"]
+[ext_resource type="Texture2D" uid="uid://dmwshk0rg5g1b" path="res://textures/ui/panel_tileset.png" id="2_bfpow"]
+[ext_resource type="LabelSettings" uid="uid://cihvmag3ppi8c" path="res://resources/highlighted_text_font.tres" id="3_bfpow"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_4u087"]
+texture = ExtResource("2_bfpow")
+0:0/0 = 0
+1:0/0 = 0
+2:0/0 = 0
+3:0/0 = 0
+0:1/0 = 0
+3:1/0 = 0
+0:2/0 = 0
+3:2/0 = 0
+0:3/0 = 0
+1:3/0 = 0
+2:3/0 = 0
+3:3/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_fqtyt"]
+sources/0 = SubResource("TileSetAtlasSource_4u087")
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_3n4vj"]
+size = Vector2(100, 100)
+
+[node name="dialogue" type="CanvasLayer"]
+script = ExtResource("1_3n4vj")
+
+[node name="dialogue_panel" type="TileMapLayer" parent="."]
+position = Vector2(35, -155)
+tile_map_data = PackedByteArray("AAAAAEIAAAABAAAAAAD+/0IAAAAAAAAAAAD+/0MAAAAAAAEAAAD//0IAAAABAAAAAAD+/0QAAAAAAAIAAAD+/0wAAAAAAAMAAAD+/0sAAAADAAIAAAD//0wAAAABAAMAAAD+/0oAAAAAAAIAAAAAAEwAAAACAAMAAAAeAEIAAAACAAAAAAAfAEIAAAACAAAAAAAgAEMAAAADAAEAAAAgAEQAAAAAAAIAAAAgAEIAAAADAAAAAAABAEwAAAACAAMAAAAdAEwAAAACAAMAAAAeAEwAAAACAAMAAAAfAEwAAAACAAMAAAAgAEUAAAAAAAIAAAAgAEkAAAAAAAIAAAAgAEoAAAADAAIAAAAgAEsAAAAAAAIAAAAgAEwAAAADAAMAAAABAEIAAAACAAMAAAAdAEIAAAACAAMAAAD+/0UAAAAAAAIAAAD+/0kAAAAAAAIAAAA=")
+tile_set = SubResource("TileSet_fqtyt")
+
+[node name="control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 14.0
+offset_top = -168.0
+offset_right = 551.0
+offset_bottom = -15.0
+grow_vertical = 0
+
+[node name="content_container" type="MarginContainer" parent="control"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -258.5
+offset_top = -69.0
+offset_right = 258.5
+offset_bottom = 69.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="control/content_container"]
+layout_mode = 2
+
+[node name="TextureRect" type="TextureRect" parent="control/content_container/HBoxContainer"]
+layout_mode = 2
+texture = SubResource("PlaceholderTexture2D_3n4vj")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="control/content_container/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="icon_controls" type="HBoxContainer" parent="control/content_container/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="Button" type="Button" parent="control/content_container/HBoxContainer/VBoxContainer/icon_controls"]
+layout_mode = 2
+
+[node name="Button2" type="Button" parent="control/content_container/HBoxContainer/VBoxContainer/icon_controls"]
+layout_mode = 2
+
+[node name="main_dialogue" type="Label" parent="control/content_container/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "This is my dialogue"
+label_settings = ExtResource("3_bfpow")
+
+[node name="continue" type="HBoxContainer" parent="control/content_container/HBoxContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+alignment = 2
+
+[node name="continue" type="Button" parent="control/content_container/HBoxContainer/VBoxContainer/continue"]
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Continue..."
