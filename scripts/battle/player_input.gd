@@ -7,6 +7,11 @@ signal action_triggered(action: Dictionary)
 var current_intent: Vector2 = Vector2()
 var is_shooting: bool = false
 var current_pewpew_target: Vector2 = Vector2()
+var input_disabled = true
+
+func set_disabled(yesno: bool) -> void:
+	input_disabled = yesno
+
 func _unhandled_input(input_event: InputEvent) -> void:
 	var action = get_action(input_event)
 	is_shooting = (
@@ -17,7 +22,8 @@ func _unhandled_input(input_event: InputEvent) -> void:
 	if "intent" in action:
 		current_intent += action["intent"]
 		action["intent"] = current_intent
-	action_triggered.emit(action)
+	if not input_disabled:
+		action_triggered.emit(action)
 
 func _process(_delta: float) -> void:
 	var action: Dictionary = {}

@@ -1,7 +1,11 @@
 extends Area2D
 
+var enabled: bool = true
 var contained_bodies: Dictionary = {}
 var highligthed_body: Node2D
+
+func set_disabled(yesno: bool) -> void:
+	enabled = not yesno
 
 func is_target_locked() -> bool:
 	return 0 < contained_bodies.size()
@@ -10,7 +14,7 @@ func get_current_target() -> Node2D:
 	return highligthed_body
 
 func get_current_target_position() -> Vector2:
-	if highligthed_body:
+	if highligthed_body and enabled:
 		return highligthed_body.get_global_position()
 	return get_global_position()
 

@@ -1,6 +1,7 @@
 extends Node2D
 
 @export var starting_laupeerium: float = 25.
+@export_range(0., 1.) var replay_screen_responsiveness: float = 0.2
 
 @onready var character_template = preload("res://scenes/character.tscn")
 @onready var laupeerium_bar: UIEnergyBar = $GUI/status_padding/VBoxContainer/temporal_equipment_status/laupeerium
@@ -15,6 +16,7 @@ func _ready():
 	reset_health_display()
 	laupeerium_bar.bars_remaining = UIEnergyBar.max_bars
 	$combatants/character/controller.stop()
+	$combatants/character/cam.make_current()
 	living_team_members[2] = 0
 	living_team_members[1] = 0
 	for combatant in $combatants.get_children():
@@ -52,11 +54,11 @@ func reset_health_display() -> void:
 
 func reset_game() -> void:
 	$GUI/sensors_display.set_sonar_visibility(true)
-	for explosion in $explosions.get_children():
+	for explosion in $mush.get_children():
 		explosion.queue_free()
 	get_tree().call_deferred("reload_current_scene")
 
-func restart_round() -> void:
+func restart_round(rewind_animation: bool = true) -> void:
 	# Handle resource changes with round restart
 	current_laupeerium -= 1.
 	laupeerium_bar.bars_remaining = round(float(UIEnergyBar.max_bars) * (current_laupeerium / starting_laupeerium))
@@ -70,28 +72,30 @@ func restart_round() -> void:
 	# Create a clone of the ship
 	create_new_puppet($combatants/character)
 
-	# Set up UI for the new round
-	$GUI/rewind_effects.set_visible(true)
-	reset_health_display()
-
 	# Handle temporal entanglement for affected ships
 	for c in $combatants.get_children():
 		if(
 			"entangled" in c and c.entangled and not c.has_node("replayer")
 			and c.has_node("team") and c.get_node("team").is_enemy($combatants/character.get_node("team"))
 		):
-			var records = c.get_node("temporal_recorder").stop_recording()
-			var replayer = Node2D.new()
-			replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
-			replayer.name = "replayer"
-			replayer.usec_records = records["action"]
-			replayer.msec_records = records["motion"]
-			replayer.temporal_scope_changed.connect(c._on_replayer_temporal_scope_changed)
-			$timeline.connect("round_reset", replayer.reset)
-			$timeline.connect("round_reset", replayer.start_replay)
-			replayer.reset()
-			c.add_child(replayer)
-			c.get_node("ai_control").set_disabled(true)
+			entangle_ship_with_player(c)
+
+	if not rewind_animation:
+		for combatant in $combatants.get_children():
+			if "pause_control" in combatant:
+				combatant.resume_control()
+		$timeline.reset()
+		debug_lines.clear()
+		queue_redraw()
+		$GUI/defeat.set_visible(false)
+		$GUI/victory.set_visible(false)
+		$GUI/restart_round_panel.set_visible(false)
+		return
+
+	# Set up UI for the new round
+	$GUI/rewind_effects.set_visible(true)
+	reset_health_display()
+
 	# Move the player to its spawn position
 	var respawn_time = 1.
 	var player_move_tween = create_tween()
@@ -117,7 +121,7 @@ func restart_round() -> void:
 		living_team_members[1] = 0
 		living_team_members[2] = 0
 		for c in $combatants.get_children():
-			if "is_alive" in c and c.is_alive():
+			if "is_alive" in c and c.is_alive:
 				living_team_members[c.get_node("team").team_id] += 1
 	)
 	player_move_tween.chain()
@@ -129,6 +133,7 @@ var reverse_initiated: bool = false
 var reverse_hold_time_sec: float = 0.
 var reverse_tap_count: int = 0
 var reverse_last_tap_at: int = Time.get_ticks_msec()
+var replay_viewport = Rect2()
 @onready var battle_start_timetamp_msec: int = int(Time.get_unix_time_from_system())
 func _process(delta):
 	var display_time: int = battle_start_timetamp_msec + int(BattleTimeline.instance.time_msec())
@@ -144,12 +149,32 @@ func _process(delta):
 				combatant.resume_control()
 			$timeline.reset()
 			$GUI/sensors_display.set_sonar_visibility(false)
+			$player_input.set_disabled(false)
 		else: return
+
+	# Handle camera while replay
+	if is_replay:
+		var view_rectangle: Rect2 = Rect2()
+		var characters_in_battle = 0
+		for c: BattleCharacter in $combatants.get_children():
+			if c.in_battle():
+				view_rectangle = view_rectangle.expand(c.get_global_position())
+				characters_in_battle += 1
+		if 2 < characters_in_battle:
+			var viewport_size = get_viewport_rect().size
+			var zoom_level = min(
+				viewport_size.x / view_rectangle.size.x,
+				viewport_size.y / view_rectangle.size.y,
+			) * 0.9
+			replay_viewport.position = lerp(replay_viewport.position, view_rectangle.position, replay_screen_responsiveness)
+			replay_viewport.size = lerp(replay_viewport.size, view_rectangle.size, replay_screen_responsiveness)
+			$replay_camera.zoom = Vector2(zoom_level, zoom_level)
+			$replay_camera.set_global_position(replay_viewport.position + replay_viewport.size / 2.)
 
 	# score, target assist area and sensor control
 	$GUI/score.set_text(str(living_team_members[1], " vs ", living_team_members[2]))
 	$target_assist.set_position(get_global_mouse_position())
-	if $combatants/character/sonar_sensor.direct_control:
+	if $combatants.has_node("character") and $combatants/character/sonar_sensor.direct_control:
 		var direction = (get_global_mouse_position() - $combatants/character.get_global_position()).normalized()
 		$combatants/character/sonar_sensor.set_manual_rotation(direction.angle())
 
@@ -179,6 +204,22 @@ func _process(delta):
 			reverse_hold_time_sec = 0.
 			reverse_initiated = false
 			$GUI/rewind_effects.set_visible(false)
+
+func entangle_ship_with_player(ship: BattleCharacter) -> void:
+	if ship.has_node("replayer") or ship.name == "character": return # Nothing to do when ship is already entangled
+	var records = ship.get_node("temporal_recorder").stop_recording()
+	var replayer = Node2D.new()
+	replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
+	replayer.name = "replayer"
+	replayer.usec_records = records["action"]
+	replayer.msec_records = records["motion"]
+	replayer.temporal_scope_changed.connect(ship._on_replayer_temporal_scope_changed)
+	$timeline.connect("round_reset", replayer.reset)
+	$timeline.connect("round_reset", replayer.start_replay)
+	replayer.reset()
+	ship.add_child(replayer)
+	if ship.has_node("ai_control"):
+		ship.get_node("ai_control").set_disabled(true)
 
 func create_new_puppet(predecessor):
 	# Initialize the new clone/puppet
@@ -214,8 +255,9 @@ func create_new_puppet(predecessor):
 	predecessor.get_node("temporal_recorder").start_recording()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if is_replay: return
 	var just_pressed = event.is_pressed() and not event.is_echo()
-
+	
 	# God mode toggle (F9)
 	if FeatureFlags.is_enabled("god_mode"):
 		if event is InputEventKey and event.physical_keycode == KEY_F9 and just_pressed:
@@ -242,22 +284,27 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func player_defeated() -> bool:
 	return (
-		(
-			not $combatants/player_carrier.is_alive()
-			and not $combatants/character.is_alive()
-		) or (
-			0. == current_laupeerium
-			and not $combatants/character.is_alive()
+		# character is deleted upon replaying the round
+		$combatants.has_node("character")
+		and( 
+			(
+				not $combatants/player_carrier.is_alive
+				and not $combatants/character.is_alive
+			) or (
+				0. == current_laupeerium
+				and not $combatants/character.is_alive
+			)
 		)
 	)
 
 func are_you_winning_son() -> bool:
 	return (
 		not player_defeated()
-		 and 0 == living_team_members[2]
+		and 0 == living_team_members[2]
 	)
 
 func _on_battle_character_dead(character: BattleCharacter) -> void:
+	if is_replay: return
 	living_team_members[character.get_node("team").team_id] -= 1
 	if player_defeated():
 		$GUI/victory.set_visible(false)
@@ -267,16 +314,33 @@ func _on_battle_character_dead(character: BattleCharacter) -> void:
 		$GUI/restart_round_panel.set_visible(false)
 		$GUI/defeat.set_visible(false)
 		$GUI/victory.set_visible(true)
-	elif not $combatants/character.is_alive():
+	elif $combatants.has_node("character") and not $combatants/character.is_alive:
 		$GUI/victory.set_visible(false)
 		$GUI/defeat.set_visible(false)
 		$GUI/restart_round_panel.set_visible(true)
 
 func _on_battle_character_resurrected(character: BattleCharacter) -> void:
-	if $combatants/character.is_alive():
+	if is_replay: return
+	if $combatants.has_node("character") and $combatants/character.is_alive:
 		$GUI/restart_round_panel.set_visible(false)
 	living_team_members[character.get_node("team").team_id] += 1
 
 const one_weapon_slot_width_with_padding: float = 128.5
 func _on_weapon_changed(slot: int) -> void:
 	$GUI/selected_weapon_panel.transform.origin.y = float(slot) * one_weapon_slot_width_with_padding
+
+var is_replay = false
+func _on_replay_button_pressed() -> void:
+	is_replay = true
+	replay_viewport = Rect2()
+	for c in $combatants.get_children():
+		replay_viewport.expand(c.get_global_position())
+		if c.has_node("ai_control"):
+			c.ai_fallback = false
+			c.get_node("ai_control").set_disabled(true)
+		entangle_ship_with_player(c)
+	restart_round(false)
+	$player_input.set_disabled(true)
+	$combatants/character.queue_free()
+	$replay_camera.make_current()
+	$target_assist.set_disabled(true)

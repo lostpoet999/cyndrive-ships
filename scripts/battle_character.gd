@@ -15,8 +15,10 @@ signal weapon_energy_updated(new_energy_level: float)
 @export var max_health: float = 12.
 @export var target_assist_shape: CollisionShape2D
 @export var temporal_correction_distance_threshold: float = approx_size / 2.
+@export var low_health: float = 3.
 @export_range(0., 200.) var mass: float = 10.
 
+var health: float = starting_health
 var target_assist_original_size: float = 150.
 func _ready() -> void:
 	if FeatureFlags.is_enabled("new_player_control") and name == "character":
@@ -40,11 +42,11 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 	# DEBUG LINES FOR MOTION CORRECTION
 
 	if "health" in snapshot:
-		was_alive = $health.is_alive
-		$health.set_value(snapshot["health"])
-		if not was_alive and $health.is_alive:
+		was_alive = is_alive
+		health = snapshot["health"]
+		if not was_alive and is_alive:
 			resurrect_me()
-			was_alive = $health.is_alive
+			was_alive = is_alive
 
 	if "energy" in snapshot and has_node("energy_systems"):
 		get_node("energy_systems").temporal_correction(snapshot["energy"])
@@ -65,7 +67,7 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 		clone.set_global_position(get_global_position())
 		clone.set_global_rotation(get_global_rotation())
 		if "replace_skin" in clone: clone.replace_skin = false
-		get_parent().add_child(clone)
+		$"../../mush".add_child(clone)
 		var tween = create_tween()
 		tween.tween_method(
 			func(value): clone.set_burn_percentage(value),
@@ -79,19 +81,16 @@ func init_clone(predecessor: BattleCharacter) -> void:
 	team_id = predecessor.team_id
 	skin_layers = predecessor.skin_layers # set skin from predecessor(_ready will construct the skin)
 
-func is_alive() -> bool:
-	return self.has_node("health") and $health.is_alive
-
 func in_battle() -> bool:
 	return (
-		is_alive() 
+		is_alive
 		and (
 			# Only player or AI controlled characters don't have a replayer
 			not has_node("replayer")
 			# The replayer has records for the current time
 			or $replayer.is_within_current_time()
 			# AI can retake control after replayer runs out of moves
-			or has_node("ai_control")
+			or (has_node("ai_control") and ai_fallback)
 		)
 	)
 
@@ -117,18 +116,40 @@ func _physics_process(delta: float) -> void:
 				contact_time = 0.
 			body_in_contact = collision.get_collider()
 			var mass_ratio = get_mass() / body_in_contact.get_mass()
-			body_in_contact.apply_impulse($controller.internal_force * delta * mass_ratio * 0.9)
+			body_in_contact.apply_impulse($controller.internal_force * delta * mass_ratio * 0.15)
 		else:
 			contact_time = 0.
 
-@onready var was_alive = is_alive()
-@onready var was_in_battle = in_battle()
+@onready var is_alive: bool = true
+@onready var was_alive: bool = true
+@onready var was_in_battle: bool = in_battle()
 var ship_explosion : ShipExplosion
 var explosion_template = preload("res://scenes/effects/explosion-firey.tscn")
-var zoom_value = 0.4
+var zoom_value: float = 0.4
 func _process(_delta):
+	# Sync state for being alive and in battle
+	if is_alive != was_alive:
+		was_in_battle = in_battle()
+
+	# Handle when player timeline gets different from characters timeline
+	if not in_battle() and was_in_battle:
+		create_tween().tween_method(func(value): $skin.set_burn_percentage(value), 0.0, 1.0, 0.5)
+		was_in_battle = false
+	elif in_battle() and not was_in_battle:
+		create_tween().tween_method(func(value): $skin.set_burn_percentage(value), 1.0, 0.0, 0.5)
+		was_in_battle = true
+
+	# Erase explosion if ship is alive
+	if is_alive and ship_explosion != null:
+		ship_explosion.queue_free()
+		ship_explosion = null
+
+	# Do not continue if the ship is not in battle
+	if not in_battle(): return
+
 	if has_node("repair_indicator"):
 		$repair_indicator.set_global_position(get_global_position() - $repair_indicator.size * 0.55)
+
 	# Play thruster sound when ship is being steered
 	if (
 		0. < $controller.intent_direction.length() and in_battle()
@@ -151,39 +172,6 @@ func _process(_delta):
 		if target_assist_shape:
 			target_assist_shape.shape.radius = target_assist_original_size * (0.5 / zoom_value)
 
-	# Sync state for being alive and in battle 
-	if is_alive() != was_alive:
-		was_in_battle = in_battle()
-
-	# Handle when player timeline gets different from characters timeline
-	if not in_battle() and was_in_battle:
-		create_tween().tween_method(func(value): $skin.set_burn_percentage(value), 0.0, 1.0, 0.5)
-		was_in_battle = false
-	elif in_battle() and not was_in_battle:
-		create_tween().tween_method(func(value): $skin.set_burn_percentage(value), 1.0, 0.0, 0.5)
-		was_in_battle = true
-
-	# Handle explosion when ship is destroyed
-	if !is_alive():
-		unalive_me()
-		if was_alive:
-			#erase a previous explosion if there was any
-			if ship_explosion == null:
-				ship_explosion = explosion_template.instantiate().duplicate()
-				$"../../explosions".add_child(ship_explosion)
-			ship_explosion.reinit()
-			ship_explosion.set_global_position(get_global_position())
-			was_alive = false
-			was_in_battle = false
-			explosion_shake(100., 0.8)
-			$explosion_sound.play()
-			dead.emit(self)
-
-	# Erase explosion if alive
-	if is_alive() and ship_explosion != null:
-		ship_explosion.queue_free()
-		ship_explosion = null
-
 @export var laser_strength: float = 1.
 @export var entanglement_chance: float = 0.05
 var entangled: bool = false
@@ -201,27 +189,55 @@ func accept_damage(strength: float, source: BattleCharacter = null) -> void:
 		and not has_node("replayer")
 	):
 		entangled = true
-	$health.accept_damage(strength)
-	health_changed.emit($health.health / starting_health)
-	if $health.health > 3:
+	health -= max(0., strength)
+	is_alive = 0 < health
+	health_changed.emit(health / starting_health)
+	if health > low_health:
 		explosion_shake_smooth()
 	else:
 		explosion_shake()
 
+	# Handle explosion when ship is destroyed
+	if !is_alive:
+		if was_alive:
+			#erase a previous explosion if there was any
+			if ship_explosion == null:
+				ship_explosion = explosion_template.instantiate().duplicate()
+				$"../../mush".add_child(ship_explosion)
+			ship_explosion.reinit()
+			ship_explosion.set_global_position(get_global_position())
+			was_alive = false
+			was_in_battle = false
+			$explosion_sound.play()
+			if has_node("weapon_slot"):
+				$weapon_slot.shutdown()
+			dead.emit(self)
+		unalive_me()
+
+
 func accept_healing(strength: float, _source: BattleCharacter = null) -> void:
-	$health.accept_healing(strength)
+	health = min(health + max(0., strength), max_health)
+	is_alive = 0 < health
+	health_changed.emit(health / starting_health)
 
 func respawn():
 	set_global_position(spawn_position)
 	set_velocity(Vector2())
 	set_collision_layer_value(1, true)
 	set_visible(true)
-	$health.respawn()
+	is_alive = true
+	was_alive = true
+	health = starting_health
 	$controller.stop()
+	$controller.start()
 	resume_control()
 	if has_node("temporal_recorder"):
 		$temporal_recorder.start_recording()
-		if extend_replayer and has_node("replayer"):
+		if (
+			extend_replayer and has_node("replayer")
+			and not $replayer.usec_records.keys().is_empty()
+			and not $replayer.msec_records.keys().is_empty()
+		):
 			var records = $temporal_recorder.copy_marked_records(
 				$replayer.usec_records.keys()[-1],
 				$replayer.msec_records.keys()[-1]
@@ -236,17 +252,22 @@ func respawn():
 	was_alive = true
 
 func unalive_me():
+	health = 0
+	is_alive = false
+	was_alive = false
 	set_collision_layer_value(1, false)
 	set_visible(false)
 	if has_node("ai_control"):
-		$ai_control.enabled = false
-		
+		$ai_control.set_disabled(true)
+	$controller.stop()
+
 func resurrect_me():
 	set_collision_layer_value(1, true)
 	set_visible(true)
 	if has_node("ai_control"):
-		$ai_control.enabled = true
+		$ai_control.set_disabled(false)
 	resurrected.emit(self)
+	$controller.start()
 
 var control_enabled = false
 func pause_control() -> void:
@@ -262,6 +283,8 @@ func resume_control() -> void:
 		$ai_control.resume()
 
 func process_input_action(action: Dictionary) -> void:
+	if not in_battle(): return # cannot process any action while not in battle
+
 	if "weapon_slot" in action and has_node("weapon_slot"):
 		$weapon_slot.select_slot(action["weapon_slot"])
 		action["pewpew_released"] = true
@@ -296,7 +319,7 @@ func process_input_action(action: Dictionary) -> void:
 	# Should the target be slightly off, but still around the actual laser position, the position is corrected
 	# so past versions of the players can hit their targets more accurately
 	if (
-		"pewpew" in action and "pewpew_target" in action
+		"pewpew" in action and "pewpew_target" in action and null != action["pewpew_target"]
 		and (action["pewpew_target"].get_global_position() - action["pewpew"]).length() < action["pewpew_target"].approx_size * 3
 	):
 		action["pewpew"] = action["pewpew_target"].get_global_position()
@@ -343,16 +366,17 @@ func explosion_shake_smooth(intensity: float = 30.0, duration: float = 0.5) -> v
 	
 	tween.tween_property($cam, "offset", Vector2.ZERO, 0.1)
 
+var ai_fallback: bool = true
 var extend_replayer: bool = false
 func _on_replayer_temporal_scope_changed(in_scope: bool) -> void:
 	# Mark the exact time and index values within the recorder that needs to be added to the replayer records
-	if not in_scope:
+	if not in_scope and ai_fallback:
 		$temporal_recorder.mark_current_time()
 		extend_replayer = true
 
 	# Fallback to AI once replayer runs out of records
 	if has_node("ai_control"):
-		$ai_control.set_disabled(in_scope)
+		$ai_control.set_disabled(in_scope or not ai_fallback)
 
 func _on_controller_boosting(is_boosting: bool) -> void:
 	$booster_fx.visible = is_boosting

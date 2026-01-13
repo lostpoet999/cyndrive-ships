@@ -6,10 +6,10 @@ extends Node2D
 # the explosions's spawn timestamp, since a new explosion gets spawned
 const DELETE_IF_TIME_PRECEEDS_SPAWN = true
 
-@export var explosion_damage: float = 40.
+@export var explosion_damage: float = 5.
 @export var explosion_length: float = 1.2
-@export var explosion_strength: float = 10000.
-@export var explosion_range: float = 500.
+@export var explosion_strength: float = 1000.
+@export var explosion_range: float = 250.
 
 @onready var fire1: Sprite2D = $fire1
 @onready var fire2: Sprite2D = $fire2

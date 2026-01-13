@@ -22,6 +22,6 @@ func _on_body_exited(body: Node2D) -> void:
 
 func _process(delta: float) -> void:
 	for ship in ships_within_aura:
-		if not ship.has_node("health"): continue
+		if not "health" in ship: continue
 		var effect_strength = abs(BattleTimeline.instance.time_since_msec(ships_within_aura[ship])) * strength_over_time
 		ship.accept_healing(healing_power * effect_strength * delta)

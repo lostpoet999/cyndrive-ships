@@ -23,6 +23,8 @@ func _ready() -> void:
 	boost_energy_updated.emit(boost_energy_remaining)
 
 func reset() -> void:
+	is_weaponing = false
+	was_weaponing = false
 	boost_energy_remaining = max_boost
 	weapon_energy_remaining = max_weapon
 	weapon_energy_updated.emit(weapon_energy_remaining)
@@ -40,6 +42,7 @@ func process_input_action(action) -> void:
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 var was_weaponing: bool = false
 func _process(delta: float) -> void:
+	if not get_parent().in_battle(): return
 	if $"../controller".is_boosting: _drain_boost(delta)
 	else: _recharge_boost(delta)
 	if is_weaponing: _update_weapon_energy(-weapon_system.get_energy_cost())

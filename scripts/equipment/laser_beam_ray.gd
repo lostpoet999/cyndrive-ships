@@ -39,12 +39,6 @@ func process_input_action(action: Dictionary) -> void:
 	)
 	if is_shooting:
 		$sound.play()
-
-		if null != $raycast.get_collider():
-			var victim = $raycast.get_collider()
-			if victim.has_method("accept_damage"):
-				victim.accept_damage(base_damage * current_strength_modifier, get_parent())
-
 		if not was_shooting: # Laser alpha and width animation
 			current_strength_modifier = warmup_damage_modifier
 			create_tween().tween_property(self, "current_strength_modifier", warmup_damage_modifier, 1.)
@@ -64,6 +58,16 @@ func hit_position() -> Vector2:
 
 func _physics_process(_delta: float) -> void:
 	$beam_line.points[0] = get_global_position()
+	if not get_parent().in_battle():
+		$beam_line.points[1] = get_global_position()
+		$raycast.set_global_position(get_global_position())
+		$raycast.target_position = get_global_position()
+		return
 	$beam_line.points[1] = hit_position()
 	$raycast.set_global_position(get_global_position())
 	$raycast.target_position = get_global_position() + (pewpew_target - get_global_position()) * 1000.
+	if is_shooting:
+		if null != $raycast.get_collider():
+			var victim = $raycast.get_collider()
+			if victim.has_method("accept_damage"):
+				victim.accept_damage(base_damage * current_strength_modifier, get_parent())

@@ -14,10 +14,12 @@ var usec_records : Dictionary # key is in usec
 var msec_records : Dictionary # key is in msec
 
 @export var triggers_per_second: int = 4
+
 @onready var target : PhysicsBody2D = get_parent()
 
 var last_time_flow = BattleTimeline.TimeFlow.FORWARD
 var last_snapshot
+
 func _process(_delta: float) -> void:
 	if BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.BACKWARD:
 		# update stored actions
@@ -131,8 +133,8 @@ func _physics_process(_delta: float) -> void:
 		current_snapshot["angular_velocity"] = target.get_angular_velocity()
 	if target.has_node("controller"):
 		current_snapshot["internal_force"] = target.get_node("controller").internal_force
-	if target.has_node("health"):
-		current_snapshot["health"] = target.get_node("health").value()
+	if "health" in target:
+		current_snapshot["health"] = target.health
 	if target.has_node("energy_systems"):
 		current_snapshot["energy"] = target.get_node("energy_systems").temporal_snapshot()
 	msec_records[last_triggered] = current_snapshot

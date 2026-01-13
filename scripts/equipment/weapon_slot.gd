@@ -9,6 +9,10 @@ func reset() -> void:
 	if null != weapons[current_slot] and "reset" in weapons[current_slot]:
 		weapons[current_slot].reset()
 
+func shutdown():
+	if "shutdown" in weapons[current_slot]:
+		weapons[current_slot].shutdown()
+
 func select_slot(slot: int) -> void:
 	if( # Slot not within bounds
 		slot < 0 or slot >= weapons.size()

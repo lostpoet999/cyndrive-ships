@@ -7,7 +7,6 @@
 [ext_resource type="Script" uid="uid://biil32ytxamuc" path="res://scripts/equipment/laser_beam_ray.gd" id="4_2t4uj"]
 [ext_resource type="Script" uid="uid://cb5wlskdaf6ig" path="res://scripts/skin.gd" id="4_u0pwc"]
 [ext_resource type="Script" uid="uid://cdrsm7mlhnmnm" path="res://scripts/equipment/energy_systems.gd" id="6_vovfy"]
-[ext_resource type="Script" uid="uid://3np7r4qj40n6" path="res://scripts/equipment/health.gd" id="7_1bsqs"]
 [ext_resource type="Texture2D" uid="uid://dvsc27stwcqkh" path="res://textures/target.png" id="8_pt8yu"]
 [ext_resource type="AudioStream" uid="uid://x01j2fo2me0d" path="res://audio/engine_thruster.wav" id="14_8yvht"]
 [ext_resource type="Script" uid="uid://b8xstfcmfbymf" path="res://scripts/effects/thruster_fx.gd" id="16_x8k1v"]
@@ -27,7 +26,7 @@ height = 60.0
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_cicko"]
 shader = ExtResource("20_u0pwc")
-shader_parameter/glow_intensity = 1.8060000825251201
+shader_parameter/glow_intensity = 1.80600008252512
 shader_parameter/glow_speed = 0.10000000149012
 shader_parameter/radial_glow = 1.434000020615
 shader_parameter/glow_color = Color(0.19999999, 1, 0.30666673, 0.5921569)
@@ -36,6 +35,32 @@ shader_parameter/wave_spacing = 0.23300000780762
 shader_parameter/pixel_size = 8.0000003325
 
 [sub_resource type="AudioStreamRandomizer" id="AudioStreamRandomizer_i0gp7"]
+
+[sub_resource type="GDScript" id="GDScript_vovfy"]
+script/source = "extends Node2D
+
+@onready var character: BattleCharacter = get_parent()
+@onready var health: float = character.starting_health
+
+func value() -> float:
+	return health
+
+func set_value(new_value: float) -> void:
+	health = new_value
+	is_alive = 0 < health
+
+var is_alive: bool = true
+func accept_damage(strength: float) -> void:
+	health -= max(0., strength)
+	is_alive = 0 < health
+
+func accept_healing(strength: float) -> void:
+	health = min(health + max(0., strength), character.max_health)
+
+func respawn() -> void:
+	is_alive = true
+	health = get_parent().starting_health
+"
 
 [sub_resource type="Gradient" id="Gradient_0dpix"]
 offsets = PackedFloat32Array(0, 0.47215497, 0.8595642, 1)
@@ -144,7 +169,7 @@ offset_bottom = -30.0
 text = "DEBUG"
 
 [node name="health" type="Node2D" parent="."]
-script = ExtResource("7_1bsqs")
+script = SubResource("GDScript_vovfy")
 
 [node name="target_arrow" type="Sprite2D" parent="."]
 visible = false

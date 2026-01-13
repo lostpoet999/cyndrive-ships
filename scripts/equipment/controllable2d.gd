@@ -63,6 +63,7 @@ func pause() -> void:
 
 func stop() -> void:
 	enabled = false
+	intent_direction = Vector2()
 	intent_force = Vector2()
 	internal_force = Vector2()
 	last_intent = Vector2()

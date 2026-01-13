@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=61 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle/player_input.gd" id="2_4u087"]
@@ -18,9 +18,9 @@
 [ext_resource type="Shader" uid="uid://rsuxn1jhme0d" path="res://shaders/rewind.gdshader" id="9_61i1y"]
 [ext_resource type="Script" uid="uid://ba0vnf5082iwk" path="res://scripts/status_container.gd" id="10_fpf3k"]
 [ext_resource type="PackedScene" uid="uid://dtqjekkcmkdfh" path="res://scenes/effects/energy_bar_control.tscn" id="10_saiin"]
-[ext_resource type="Texture2D" uid="uid://dmwshk0rg5g1b" path="res://textures/ui/panel_tileset.png" id="12_1m01a"]
+[ext_resource type="Texture2D" uid="uid://ci1a1of5pn6u" path="res://textures/ui/panel_tileset.png" id="12_1m01a"]
 [ext_resource type="Texture2D" uid="uid://026apoj7buxx" path="res://textures/ui/restart_button_up.png" id="13_e50ek"]
-[ext_resource type="Texture2D" uid="uid://f4rt3lfhwecq" path="res://textures/ui/LASER_ICON.png" id="13_lv4so"]
+[ext_resource type="Texture2D" uid="uid://o7i8sqffami5" path="res://textures/ui/LASER_ICON.png" id="13_lv4so"]
 [ext_resource type="Texture2D" uid="uid://l80grl266qqi" path="res://textures/ui/victory.png" id="14_eivww"]
 [ext_resource type="Texture2D" uid="uid://c2m8cwyuafmjq" path="res://textures/ui/restart_button_down.png" id="14_mpb26"]
 [ext_resource type="Texture2D" uid="uid://dckaqcgel4xpt" path="res://textures/ui/restart_button_hover.png" id="15_4u087"]
@@ -28,13 +28,16 @@
 [ext_resource type="Texture2D" uid="uid://b655tybark5um" path="res://textures/ui/defeat.png" id="15_rwtbh"]
 [ext_resource type="PackedScene" uid="uid://b2el5b6ucyivj" path="res://scenes/player_carrier.tscn" id="16_61i1y"]
 [ext_resource type="Texture2D" uid="uid://c17117io8ilgk" path="res://textures/player_carrier_top.png" id="17_dd63g"]
-[ext_resource type="Texture2D" uid="uid://ctjb6qnmprqfc" path="res://textures/ui/CHAIN_LIGHTNING_ICON.png" id="19_mpb26"]
+[ext_resource type="Texture2D" uid="uid://5ffs6v6ii1g8" path="res://textures/ui/CHAIN_LIGHTNING_ICON.png" id="19_mpb26"]
+[ext_resource type="Texture2D" uid="uid://bosgurqjrj5i7" path="res://textures/ui/replay_button_up.png" id="20_8a2ah"]
+[ext_resource type="Texture2D" uid="uid://bprsxwc3kl0vm" path="res://textures/ui/replay_button_down.png" id="21_ikjs2"]
 [ext_resource type="Texture2D" uid="uid://dfg1j5w5e5k8y" path="res://textures/fighter-ship-base.png" id="21_jt4d8"]
-[ext_resource type="Texture2D" uid="uid://chh1l4wcbghbx" path="res://textures/player_carrier_bottom.png" id="24_lv4so"]
+[ext_resource type="Texture2D" uid="uid://djx4c7a3peok5" path="res://textures/ui/replay_button_hover.png" id="22_1rdfn"]
+[ext_resource type="Texture2D" uid="uid://o42ke22r8jvm" path="res://textures/player_carrier_bottom.png" id="24_lv4so"]
 [ext_resource type="Script" uid="uid://cud6a5voxneed" path="res://battle_ship_skin.gd" id="25_eivww"]
 [ext_resource type="Texture2D" uid="uid://cm6fobaf78bk1" path="res://textures/battle_ship.png" id="25_lv4so"]
 [ext_resource type="Texture2D" uid="uid://bs8ao20cjqgpr" path="res://textures/fighter-ship-accent.png" id="30_at2n2"]
-[ext_resource type="PackedScene" uid="uid://dwxo210cmq3jj" path="res://scenes/dialogue.tscn" id="35_4u087"]
+[ext_resource type="PackedScene" path="res://scenes/dialogue.tscn" id="35_4u087"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_fqtyt"]
 frequency = 0.0869
@@ -183,6 +186,10 @@ metadata/_custom_type_script = "uid://cud6a5voxneed"
 
 [node name="battle" type="Node2D"]
 script = ExtResource("1_j7yva")
+metadata/_edit_vertical_guides_ = [788.0, 163.0]
+metadata/_edit_horizontal_guides_ = [426.0]
+
+[node name="replay_camera" type="Camera2D" parent="."]
 
 [node name="player_input" type="Node2D" parent="."]
 script = ExtResource("2_4u087")
@@ -198,7 +205,7 @@ transform = Transform2D(1, 0, 0, 1, 1024, 0)
 [node name="starfield_container" type="ParallaxLayer" parent="parallax_background"]
 motion_scale = Vector2(0.04, 0.04)
 motion_offset = Vector2(2048, 2048)
-motion_mirroring = Vector2(4096, 4096)
+motion_mirroring = Vector2(8192, 8192)
 
 [node name="starfield-shaded" type="ColorRect" parent="parallax_background/starfield_container"]
 material = SubResource("ShaderMaterial_1rdfn")
@@ -206,6 +213,27 @@ offset_left = -2048.0
 offset_top = -2048.0
 offset_right = 2048.0
 offset_bottom = 2048.0
+
+[node name="starfield-shaded2" type="ColorRect" parent="parallax_background/starfield_container"]
+material = SubResource("ShaderMaterial_1rdfn")
+offset_left = 2048.0
+offset_top = -2048.0
+offset_right = 6144.0
+offset_bottom = 2048.0
+
+[node name="starfield-shaded3" type="ColorRect" parent="parallax_background/starfield_container"]
+material = SubResource("ShaderMaterial_1rdfn")
+offset_left = -2048.0
+offset_top = 2048.0
+offset_right = 2048.0
+offset_bottom = 6144.0
+
+[node name="starfield-shaded4" type="ColorRect" parent="parallax_background/starfield_container"]
+material = SubResource("ShaderMaterial_1rdfn")
+offset_left = 2048.0
+offset_top = 2048.0
+offset_right = 6144.0
+offset_bottom = 6144.0
 
 [node name="planet_layer" type="ParallaxLayer" parent="parallax_background"]
 motion_scale = Vector2(0.05, 0.05)
@@ -390,11 +418,21 @@ position = Vector2(499, 278)
 scale = Vector2(0.45237273, 0.46296296)
 texture = ExtResource("14_eivww")
 
-[node name="TextureButton" type="TextureButton" parent="GUI/victory"]
-offset_left = -341.0
-offset_top = 163.0
-offset_right = 171.0
-offset_bottom = 291.0
+[node name="replay_button" type="TextureButton" parent="GUI/victory"]
+offset_left = 128.21284
+offset_top = 187.91998
+offset_right = 640.2128
+offset_bottom = 315.91998
+texture_normal = ExtResource("20_8a2ah")
+texture_pressed = ExtResource("21_ikjs2")
+texture_hover = ExtResource("22_1rdfn")
+stretch_mode = 4
+
+[node name="restart_button" type="TextureButton" parent="GUI/victory"]
+offset_left = -744.9609
+offset_top = 196.56004
+offset_right = -232.96088
+offset_bottom = 324.56006
 texture_normal = ExtResource("13_e50ek")
 texture_pressed = ExtResource("14_mpb26")
 texture_hover = ExtResource("15_4u087")
@@ -673,13 +711,14 @@ skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), Sub
 rotation = 3.14159
 script = ExtResource("5_3g8p0")
 
-[node name="explosions" type="Node" parent="."]
+[node name="mush" type="Node" parent="."]
 
 [node name="dialogue" parent="." instance=ExtResource("35_4u087")]
 
 [connection signal="action_triggered" from="player_input" to="combatants/character" method="process_input_action"]
 [connection signal="pressed" from="GUI/restart_round_panel/TextureButton" to="." method="restart_round"]
-[connection signal="pressed" from="GUI/victory/TextureButton" to="." method="reset_game"]
+[connection signal="pressed" from="GUI/victory/replay_button" to="." method="_on_replay_button_pressed"]
+[connection signal="pressed" from="GUI/victory/restart_button" to="." method="reset_game"]
 [connection signal="pressed" from="GUI/defeat/TextureButton" to="." method="reset_game"]
 [connection signal="body_entered" from="target_assist" to="target_assist" method="_on_body_entered"]
 [connection signal="body_exited" from="target_assist" to="target_assist" method="_on_body_exited"]
