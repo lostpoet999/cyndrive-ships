@@ -21,12 +21,17 @@ func stop() -> void:
 	enabled = false
 	internal_force = Vector2()
 	last_intent = Vector2()
+	current_impulse = Vector2()
+
+var current_impulse: Vector2 = Vector2()
+func apply_impulse(impulse: Vector2) -> void:
+	current_impulse += impulse
 
 var last_intent: Vector2 = Vector2()
 var is_boosting: bool = false
 @export var angle_response: float = 0.5
 @export var speed_response: float = 0.45
-@export var floatiness = 0.1
+@export_range(0., 1.) var floatiness = 0.1
 func process_input_action(action: Dictionary) -> void:
 	if "intent" in action:
 		if 0. == action["intent"].length():
@@ -53,10 +58,13 @@ func _physics_process(_delta: float) -> void:
 		return
 	character.set_rotation(internal_force.angle())
 	character.set_velocity(
-		internal_force * character.approx_size * top_speed
+		(internal_force + current_impulse) * character.approx_size * top_speed
 		* (booster_strength if is_boosting else 1.0)
 	)
 	last_position = get_global_position()
+	var impulse_decrease_amount = max(character.approx_size, internal_force.length() * (1. - floatiness))
+	if impulse_decrease_amount >= current_impulse.length(): current_impulse = Vector2()
+	else: current_impulse -= current_impulse.normalized() * impulse_decrease_amount
 
 #region temporal corrective functions
 

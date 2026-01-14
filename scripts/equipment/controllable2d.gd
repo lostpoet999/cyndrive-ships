@@ -68,6 +68,9 @@ func stop() -> void:
 	internal_force = Vector2()
 	last_intent = Vector2()
 
+func apply_impulse(impulse: Vector2) -> void:
+	internal_force += impulse
+
 var last_intent: Vector2 = Vector2()
 var is_boosting: bool = false
 func process_input_action(action: Dictionary) -> void:

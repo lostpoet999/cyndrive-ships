@@ -101,7 +101,7 @@ func get_mass() -> float:
 	return mass
 
 func apply_impulse(impulse: Vector2) -> void:
-	$controller.internal_force += impulse
+	$controller.apply_impulse(impulse)
 
 # Keeping track of the body the character is in contact with
 var body_in_contact: Object = null

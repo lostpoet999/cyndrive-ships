@@ -580,6 +580,8 @@ position = Vector2(1581, -2512)
 rotation = 1.5707964
 team_id = 1
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_rwtbh")])
+starting_health = 20.0
+max_health = 22.0
 target_assist_shape = NodePath("../../target_assist/collsion_shape")
 
 [node name="cam" type="Camera2D" parent="combatants/character"]
@@ -598,6 +600,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy"]
 rotation = 3.14159
@@ -610,6 +613,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy2"]
 rotation = 3.14159
@@ -622,6 +626,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy3"]
 rotation = 3.14159
@@ -634,6 +639,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy4"]
 rotation = 3.14159
@@ -646,6 +652,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy5"]
 rotation = 3.14159
@@ -658,6 +665,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy6"]
 rotation = 3.14159
@@ -670,6 +678,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy7"]
 rotation = 3.14159
@@ -682,6 +691,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy8"]
 rotation = 3.14159
@@ -694,6 +704,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy9"]
 rotation = 3.14159
@@ -706,6 +717,7 @@ team_id = 2
 spawn_position = Vector2(1000, 200)
 color = Color(1, 0, 0, 0.5803922)
 skin_layers = Array[ExtResource("25_eivww")]([SubResource("Resource_f0g0v"), SubResource("Resource_at2n2")])
+starting_health = 5.0
 
 [node name="ai_control" type="Node2D" parent="combatants/enemy10"]
 rotation = 3.14159
