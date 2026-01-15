@@ -1,0 +1,114 @@
+[gd_scene load_steps=5 format=3 uid="uid://1o5og2xeefgp"]
+
+[ext_resource type="Script" uid="uid://br0ks3g1mac4b" path="res://scripts/ui_menus/pause_menu.gd" id="1_aa0ln"]
+[ext_resource type="StyleBox" uid="uid://cvq7dn2d87nav" path="res://resources/pause menu buttons.tres" id="2_um83q"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_sbppx"]
+font_size = 64
+font_color = Color(0, 1.1801987, 1.1801987, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_um83q"]
+bg_color = Color(0.09067427, 0.5568705, 0.6661588, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="Pause Menu" type="Control"]
+z_index = 1000
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_aa0ln")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -400.0
+offset_right = 300.0
+offset_bottom = 118.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Pause_lbl" type="Label" parent="Panel/VBoxContainer"]
+layout_mode = 2
+text = "Pause Menu"
+label_settings = SubResource("LabelSettings_sbppx")
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Panel/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Spacer1" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+
+[node name="Resume_btn" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("2_um83q")
+theme_override_styles/hover = SubResource("StyleBoxFlat_um83q")
+text = "Resume"
+
+[node name="Spacer3" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="Restart_Game_btn" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("2_um83q")
+theme_override_styles/hover = SubResource("StyleBoxFlat_um83q")
+text = "Restart Game"
+
+[node name="Spacer4" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="Restart_Round_btn" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("2_um83q")
+theme_override_styles/hover = SubResource("StyleBoxFlat_um83q")
+text = "Restart Round"
+
+[node name="Spacer2" type="Control" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+
+[node name="Quit_btn" type="Button" parent="Panel/VBoxContainer"]
+custom_minimum_size = Vector2(400, 50)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 24
+theme_override_styles/normal = ExtResource("2_um83q")
+theme_override_styles/hover = SubResource("StyleBoxFlat_um83q")
+text = "Quit Game"
+
+[connection signal="pressed" from="Panel/VBoxContainer/Resume_btn" to="." method="_on_resume_btn_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/Restart_Game_btn" to="." method="_on_restart_btn_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/Restart_Round_btn" to="." method="_on_restart_round_btn_pressed"]
+[connection signal="pressed" from="Panel/VBoxContainer/Quit_btn" to="." method="_on_quit_btn_pressed"]
