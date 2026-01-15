@@ -1,4 +1,4 @@
-[gd_scene load_steps=64 format=4 uid="uid://b3trh6sc7bkeq"]
+[gd_scene load_steps=65 format=4 uid="uid://b3trh6sc7bkeq"]
 
 [ext_resource type="Script" uid="uid://oidhfjf35vx5" path="res://scripts/battle/battle_main.gd" id="1_j7yva"]
 [ext_resource type="Script" uid="uid://hldxmbsg8w6t" path="res://scripts/battle/player_input.gd" id="2_4u087"]
@@ -38,7 +38,7 @@
 [ext_resource type="Texture2D" uid="uid://cm6fobaf78bk1" path="res://textures/battle_ship.png" id="25_lv4so"]
 [ext_resource type="Texture2D" uid="uid://bs8ao20cjqgpr" path="res://textures/fighter-ship-accent.png" id="30_at2n2"]
 [ext_resource type="PackedScene" uid="uid://dwxo210cmq3jj" path="res://scenes/dialogue.tscn" id="35_4u087"]
-[ext_resource type="PackedScene" uid="uid://1o5og2xeefgp" path="res://scenes/pause menu (wip).tscn" id="39_1rdfn"]
+[ext_resource type="PackedScene" uid="uid://1o5og2xeefgp" path="res://scenes/pause menu.tscn" id="39_1rdfn"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_fqtyt"]
 frequency = 0.0869
