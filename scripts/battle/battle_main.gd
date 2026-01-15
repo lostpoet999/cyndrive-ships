@@ -264,6 +264,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			god_mode_active = !god_mode_active
 			$GUI/debug_stats/god_mode_label.visible = god_mode_active
 
+	if event.is_action_pressed("key_bindings") and just_pressed:
+		$GUI/keybindings_panel.set_visible(not $GUI/keybindings_panel.visible)
+
 	if event.is_action_pressed("replay") and just_pressed:
 		if (Time.get_ticks_msec() - reverse_last_tap_at) < tap_interval_msec:
 			reverse_tap_count += 1
