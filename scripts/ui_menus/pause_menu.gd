@@ -35,4 +35,5 @@ func _on_restart_btn_pressed() -> void:
 
 func _on_restart_round_btn_pressed() -> void:
 	get_tree().paused = false
+	self.hide()
 	battle.restart_round()
