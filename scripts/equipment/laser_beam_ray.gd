@@ -15,14 +15,15 @@ func shutdown() -> void:
 	laser_ray_tween.tween_property($beam_line, "width", ray_full_width * 2., shutdown_time_sec)
 	laser_ray_tween.tween_callback(func() :
 		$beam_line.width = 0.
+		was_shooting = is_shooting
 		is_shooting = false
 	)
 	laser_ray_tween.chain()
 
 func reset() -> void:
 	shutdown()
+	was_shooting = is_shooting
 	is_shooting = false
-	was_shooting = false
 	current_strength_modifier = 1.
 
 var current_strength_modifier: float = 1.
@@ -33,6 +34,7 @@ func process_input_action(action: Dictionary) -> void:
 	if "pewpew" in action:
 		create_tween().tween_method(func(pos): pewpew_target = pos, pewpew_target, action["pewpew"], target_time_sec)
 
+	was_shooting = is_shooting
 	is_shooting = (
 		(is_shooting and (not "pewpew_released" in action or not action["pewpew_released"]))
 		or ("pewpew_initiated" in action and action["pewpew_initiated"])
@@ -49,14 +51,16 @@ func process_input_action(action: Dictionary) -> void:
 			laser_ray_tween.chain()
 	elif was_shooting: # Laser alpha and width animation
 		shutdown()
-	was_shooting = is_shooting
 
 func hit_position() -> Vector2:
 	if $raycast.is_colliding():
 		return $raycast.get_collision_point()
 	return $raycast.target_position
 
+@export var sound_loop_start_sec: float = 0.2
+@export var sound_loop_end_sec: float = 2.0
 func _physics_process(_delta: float) -> void:
+	# Handle laser beam display and raycast
 	$beam_line.points[0] = get_global_position()
 	if not get_parent().in_battle():
 		$beam_line.points[1] = get_global_position()
@@ -66,8 +70,17 @@ func _physics_process(_delta: float) -> void:
 	$beam_line.points[1] = hit_position()
 	$raycast.set_global_position(get_global_position())
 	$raycast.target_position = get_global_position() + (pewpew_target - get_global_position()) * 1000.
+
+	# Handle sounds and applying damage
 	if is_shooting:
 		if null != $raycast.get_collider():
 			var victim = $raycast.get_collider()
 			if victim.has_method("accept_damage"):
 				victim.accept_damage(base_damage * current_strength_modifier, get_parent())
+		if not was_shooting and not $sound.playing:
+			$sound.play()
+		if $sound.playing:
+			if $sound.get_playback_position() > sound_loop_end_sec:
+				$sound.seek(sound_loop_start_sec)
+	elif was_shooting and $sound.playing:
+		$sound.seek(sound_loop_end_sec)

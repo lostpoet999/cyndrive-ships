@@ -21,11 +21,6 @@ signal weapon_energy_updated(new_energy_level: float)
 var health: float = starting_health
 var target_assist_original_size: float = 150.
 func _ready() -> void:
-	if FeatureFlags.is_enabled("new_player_control") and name == "character":
-		$controller.set_script(preload("res://scripts/equipment/player_motion_control.gd"))
-		$controller.character = self
-		$controller.team = $team
-
 	add_to_group("combatants")
 	$team.initialize(team_id, spawn_position, color)
 	$skin.init_skin(skin_layers, $team.color)
@@ -75,11 +70,12 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 		)
 		tween.finished.connect(func(): clone.queue_free())
 
-func init_clone(predecessor: BattleCharacter) -> void:
+func init_clone(predecessor: BattleCharacter, new_color: Color) -> void:
 	spawn_position = predecessor.spawn_position
 	ship_explosion = null
 	team_id = predecessor.team_id
 	skin_layers = predecessor.skin_layers # set skin from predecessor(_ready will construct the skin)
+	color = new_color
 
 func in_battle() -> bool:
 	return (

@@ -58,7 +58,8 @@ func process_input_action(action: Dictionary) -> void:
 		firing = true
 
 func _physics_process(_delta: float) -> void:
-	for i in range(active_chain.size()):
+	if active_chain.is_empty() and $sound.playing: $sound.stop()
+	else: for i in range(active_chain.size()):
 		if i >= beam_lines.size():
 			break
 		var beam_line = beam_lines[i]
@@ -80,6 +81,7 @@ func _physics_process(_delta: float) -> void:
 	firing = false
 	var chain_targets = _execute_chain_attack()
 	_animate_chain(chain_targets)
+	$sound.play(randf() * 5.)
 
 func _get_segment_position(node: Node2D, fallback: Vector2) -> Vector2:
 	if node != null and is_instance_valid(node):
@@ -197,10 +199,6 @@ func _find_next_chain_target(from_pos: Vector2, exclude: Array) -> Node2D:
 
 func _animate_chain(chain_hits: Array[Dictionary]) -> void:
 	"""Animate the chain lightning visual effect."""
-	if has_node("sound") and not chain_hits.is_empty():
-		$sound.play()
-
-	active_chain.clear()
 	for beam_line in beam_lines:
 		beam_line.width = 0.0
 		beam_line.points = PackedVector2Array([Vector2.ZERO, Vector2.ZERO])
@@ -228,6 +226,7 @@ func _animate_chain(chain_hits: Array[Dictionary]) -> void:
 		var tween = create_tween()
 		tween.tween_property(beam_line, "width", 15, 0.03)
 		tween.tween_property(beam_line, "width", 0, 0.12)
+		tween.tween_callback(func(): active_chain.pop_back())
 
 func _generate_jagged_path(from: Vector2, to: Vector2, path_seed: int = -1) -> PackedVector2Array:
 	"""Generate a jagged lightning path using midpoint displacement."""

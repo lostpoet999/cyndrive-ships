@@ -60,7 +60,7 @@ func reset_game() -> void:
 
 func restart_round(rewind_animation: bool = true) -> void:
 	# Handle resource changes with round restart
-	current_laupeerium -= 1.
+	if not is_replay: current_laupeerium -= 1.
 	laupeerium_bar.bars_remaining = round(float(UIEnergyBar.max_bars) * (current_laupeerium / starting_laupeerium))
 	$combatants/character/energy_systems.reset()
 
@@ -172,7 +172,10 @@ func _process(delta):
 			$replay_camera.set_global_position(replay_viewport.position + replay_viewport.size / 2.)
 
 	# score, target assist area and sensor control
-	$GUI/score.set_text(str(living_team_members[1], " vs ", living_team_members[2]))
+	$GUI/score.set_text(str(
+		living_team_members[1], " vs ", living_team_members[2],
+		" - Score:", int(kill_score * kill_score_multiplier + current_laupeerium * resource_score_multiplier)
+	))
 	$target_assist.set_position(get_global_mouse_position())
 	if $combatants.has_node("character") and $combatants/character/sonar_sensor.direct_control:
 		var direction = (get_global_mouse_position() - $combatants/character.get_global_position()).normalized()
@@ -221,12 +224,11 @@ func entangle_ship_with_player(ship: BattleCharacter) -> void:
 	if ship.has_node("ai_control"):
 		ship.get_node("ai_control").set_disabled(true)
 
-func create_new_puppet(predecessor):
-	# Initialize the new clone/puppet
+func create_new_puppet(predecessor: BattleCharacter) -> void:
 	var records = predecessor.get_node("temporal_recorder").stop_recording()
 	var puppet = character_template.instantiate();
 	var replayer = Node2D.new()
-	puppet.init_clone(predecessor)
+	puppet.init_clone(predecessor, Color.from_rgba8(29, 191, 0, 104))
 	replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
 	replayer.name = "replayer"
 	replayer.usec_records = records["action"]
@@ -263,6 +265,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event is InputEventKey and event.physical_keycode == KEY_F9 and just_pressed:
 			god_mode_active = !god_mode_active
 			$GUI/debug_stats/god_mode_label.visible = god_mode_active
+
+	# Switch to snappy control
+	if event.is_action_pressed("motion_switch_1") and just_pressed:
+		$combatants/character/controller.set_script(preload("res://scripts/equipment/player_motion_control.gd"))
+		$combatants/character/controller.character = $combatants/character
+		$combatants/character/controller.stop()
+		$combatants/character/controller.start()
+
+	# Switch to floaty control
+	if event.is_action_pressed("motion_switch_2") and just_pressed:
+		$combatants/character/controller.set_script(preload("res://scripts/equipment/controllable2d.gd"))
+		$combatants/character/controller.character = $combatants/character
+		$combatants/character/controller.last_position = $combatants/character.get_global_position()
+		$combatants/character/controller.stop()
+		$combatants/character/controller.start()
 
 	if event.is_action_pressed("key_bindings") and just_pressed:
 		$GUI/keybindings_panel.set_visible(not $GUI/keybindings_panel.visible)
@@ -306,9 +323,16 @@ func are_you_winning_son() -> bool:
 		and 0 == living_team_members[2]
 	)
 
+var kill_score: float = 0.
+@export var kill_score_multiplier: float = 100.
+@export var resource_score_multiplier: float = 500.
 func _on_battle_character_dead(character: BattleCharacter) -> void:
 	if is_replay: return
-	living_team_members[character.get_node("team").team_id] -= 1
+	var dead_character_team = character.get_node("team")
+	living_team_members[dead_character_team.team_id] -= 1
+	if $combatants/character/team.is_enemy(dead_character_team):
+		kill_score += character.starting_health
+
 	if player_defeated():
 		$GUI/victory.set_visible(false)
 		$GUI/restart_round_panel.set_visible(false)
