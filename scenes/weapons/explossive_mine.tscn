@@ -1,3 +1,5 @@
 [gd_scene format=3 uid="uid://dtxyjqq5vc8hv"]
 
-[node name="ExplossiveMine" type="Node2D"]
+[node name="ExplossiveMine" type="Area2D"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
