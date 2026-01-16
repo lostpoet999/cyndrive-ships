@@ -60,7 +60,7 @@ func reset_game() -> void:
 
 func restart_round(rewind_animation: bool = true) -> void:
 	# Handle resource changes with round restart
-	current_laupeerium -= 1.
+	if not is_replay: current_laupeerium -= 1.
 	laupeerium_bar.bars_remaining = round(float(UIEnergyBar.max_bars) * (current_laupeerium / starting_laupeerium))
 	$combatants/character/energy_systems.reset()
 
@@ -172,7 +172,10 @@ func _process(delta):
 			$replay_camera.set_global_position(replay_viewport.position + replay_viewport.size / 2.)
 
 	# score, target assist area and sensor control
-	$GUI/score.set_text(str(living_team_members[1], " vs ", living_team_members[2]))
+	$GUI/score.set_text(str(
+		living_team_members[1], " vs ", living_team_members[2],
+		" - Score:", int(kill_score * kill_score_multiplier + current_laupeerium * resource_score_multiplier)
+	))
 	$target_assist.set_position(get_global_mouse_position())
 	if $combatants.has_node("character") and $combatants/character/sonar_sensor.direct_control:
 		var direction = (get_global_mouse_position() - $combatants/character.get_global_position()).normalized()
@@ -321,9 +324,16 @@ func are_you_winning_son() -> bool:
 		and 0 == living_team_members[2]
 	)
 
+var kill_score: float = 0.
+@export var kill_score_multiplier: float = 100.
+@export var resource_score_multiplier: float = 500.
 func _on_battle_character_dead(character: BattleCharacter) -> void:
 	if is_replay: return
-	living_team_members[character.get_node("team").team_id] -= 1
+	var dead_character_team = character.get_node("team")
+	living_team_members[dead_character_team.team_id] -= 1
+	if $combatants/character/team.is_enemy(dead_character_team):
+		kill_score += character.starting_health
+
 	if player_defeated():
 		$GUI/victory.set_visible(false)
 		$GUI/restart_round_panel.set_visible(false)
