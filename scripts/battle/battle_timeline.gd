@@ -7,12 +7,6 @@ static var instance: BattleTimeline:
 
 enum TimeFlow {FORWARD = 1, BACKWARD = -1}
 
-@onready var pause_menu: Control = $"../GUI/Pause Menu"
-var accrued_pause_time_msec = 0.0
-var accrued_pause_time_usec = 0.0
-var pause_started_msec = 0.0
-var pause_started_usec = 0.0
-
 signal round_reset
 signal rewind_started
 signal rewind_stopped
@@ -24,20 +18,13 @@ var player_rewind_amount_sec: float
 var player_reverse_started_on_msec: float = 0.
 var player_reverse_started_on_usec: int = 0
 
-func _ready() -> void:
-	pause_menu.game_paused.connect(_on_game_paused)
-	pause_menu.game_unpaused.connect(_on_game_unpaused)
+var time_accrued_usec = 0.0
+var time_accrued_msec = 0.0
 
-func _on_game_paused():	
-	pause_started_msec = Time.get_ticks_msec()
-	print("time start: ", pause_started_msec)
-	pause_started_usec = Time.get_ticks_usec()
-
-func _on_game_unpaused():
-	accrued_pause_time_msec += Time.get_ticks_msec() - pause_started_msec
-	print("time accrued: ", accrued_pause_time_msec)
-	print("time msec: ", time_msec())
-	accrued_pause_time_usec += Time.get_ticks_usec() - pause_started_usec
+func _process(delta: float) -> void:
+	if time_flow != TimeFlow.BACKWARD:
+		time_accrued_msec += delta * 1000
+		time_accrued_usec += delta * 1000000
 
 ## Resetting sets the relative timestamp to be of the current time, and restarts the battle
 func reset() -> void:
@@ -51,24 +38,24 @@ func reset() -> void:
 
 func time_usec() -> int:
 	if 0 < player_rewind_amount_sec:
-		return player_reverse_started_on_usec - int(player_rewind_amount_sec * 1000000.) - accrued_pause_time_usec
-	return Time.get_ticks_usec() - player_timeline_start_usec - accrued_pause_time_usec
+		return time_accrued_usec - int(player_rewind_amount_sec * 1000000.)
+	return time_accrued_usec
 
 func time_since_usec(past_time_usec: int) -> int:
 	return time_usec() - past_time_usec
 
 func time_msec() -> float:
 	if 0 < player_rewind_amount_sec:
-		return player_reverse_started_on_msec - player_rewind_amount_sec * 1000 - accrued_pause_time_msec
-	return Time.get_ticks_msec() - player_timeline_start_msec - accrued_pause_time_msec - accrued_pause_time_msec
+		return time_accrued_msec - player_rewind_amount_sec * 1000
+	return time_accrued_msec
 
 func time_since_msec(past_time_msec: float) -> float:
 	return time_msec() - past_time_msec
 
 func reverse(delta: float) -> void:
 	if 0. == player_reverse_started_on_msec:
-		player_reverse_started_on_msec = Time.get_ticks_msec() - player_timeline_start_msec
-		player_reverse_started_on_usec = Time.get_ticks_usec() - player_timeline_start_usec
+		player_reverse_started_on_msec = time_accrued_msec
+		player_reverse_started_on_usec = time_accrued_usec
 		time_flow = TimeFlow.BACKWARD
 		rewind_started.emit()
 	player_rewind_amount_sec += delta

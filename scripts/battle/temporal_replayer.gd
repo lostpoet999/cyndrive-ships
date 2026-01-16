@@ -47,6 +47,7 @@ func stop_replay() -> void:
 var cached_frame_duration_usec: float = 1000000. / 30. # 30 fps to microseconds
 var corrected_in_this_physics_loop: bool = false
 var last_applied_usec_key: int = -1
+
 func _process(delta: float) -> void:
 	if not replay_enabled:
 		return
