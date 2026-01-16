@@ -1,6 +1,10 @@
 extends Control #enables a pause menu that completley stops the rest of the game while open
 
 var game_is_paused = false
+
+signal game_paused
+signal game_unpaused
+
 @onready var battle: Node2D = $"../.."
 
 func _ready() -> void:	
@@ -11,8 +15,10 @@ func _input(event: InputEvent) -> void:
 		self.show()
 		self.process_mode = Node.PROCESS_MODE_ALWAYS #keeps menu working while rest of game is paused
 		game_is_paused = true
+		game_paused.emit()
 		get_tree().paused = true
 	elif event.is_action_pressed("pause menu") and game_is_paused:
+		game_unpaused.emit()
 		unpause_game()
 		
 func unpause_game():
