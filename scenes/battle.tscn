@@ -416,7 +416,9 @@ SPACE
 LCLICK
 RCLICK
 R(triple press)
-R(long press)"
+R(long press)
+8
+9"
 label_settings = SubResource("LabelSettings_1rdfn")
 horizontal_alignment = 2
 autowrap_mode = 2
@@ -433,7 +435,9 @@ One time boost
 Fire Weapon(target assisted)
 Manual Sonar
 Save Round and restart
-Rewind battle until key released"
+Rewind battle until key released
+Switch to Snappy player control
+Switch to Floaty Player control"
 label_settings = SubResource("LabelSettings_r0ctv")
 autowrap_mode = 2
 

@@ -107,7 +107,6 @@ shape = SubResource("CapsuleShape2D_k8udw")
 
 [node name="controller" type="Node2D" parent="."]
 script = ExtResource("1_4dcfn")
-momentum_dampener = 0.85
 
 [node name="repair_indicator" type="ColorRect" parent="."]
 visible = false

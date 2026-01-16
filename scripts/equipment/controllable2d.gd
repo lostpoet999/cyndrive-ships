@@ -6,7 +6,7 @@ signal boosting(is_boosting: bool)
 @export var passive_movement_rotation_threshold: float = 0.15
 
 @onready var character: BattleCharacter = get_parent()
-@onready var team: Node2D = get_parent().get_node("team")
+@onready var last_position = get_global_position()
 var enabled: bool = false
 var intent_direction: Vector2 = Vector2()
 var intent_force: Vector2 = Vector2()
@@ -24,7 +24,7 @@ Run curve based on https://www.youtube.com/watch?v=yorTG9at90g
 @export_range(1, 100) var start_resistance: float = 10.
 @export_range(1, 100) var stop_resistance: float = 5.
 @export_range(0.1, 10.) var booster_strength: float = 2.
-@export_range(0., 1.) var momentum_dampener: float = 1.
+@export_range(0., 1.) var momentum_dampener: float = 0.85
 
 
 """
@@ -85,7 +85,6 @@ func process_input_action(action: Dictionary) -> void:
 	)
 	if was_boosting != is_boosting: boosting.emit(is_boosting)
 
-@onready var last_position = get_global_position()
 func _physics_process(_delta: float) -> void:
 	if not enabled or BattleTimeline.instance.time_flow == BattleTimeline.TimeFlow.BACKWARD:
 		return
