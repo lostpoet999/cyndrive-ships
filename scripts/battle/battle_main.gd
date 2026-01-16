@@ -224,12 +224,11 @@ func entangle_ship_with_player(ship: BattleCharacter) -> void:
 	if ship.has_node("ai_control"):
 		ship.get_node("ai_control").set_disabled(true)
 
-func create_new_puppet(predecessor):
-	# Initialize the new clone/puppet
+func create_new_puppet(predecessor: BattleCharacter) -> void:
 	var records = predecessor.get_node("temporal_recorder").stop_recording()
 	var puppet = character_template.instantiate();
 	var replayer = Node2D.new()
-	puppet.init_clone(predecessor)
+	puppet.init_clone(predecessor, Color.from_rgba8(29, 191, 0, 104))
 	replayer.set_script(preload("res://scripts/battle/temporal_replayer.gd"))
 	replayer.name = "replayer"
 	replayer.usec_records = records["action"]

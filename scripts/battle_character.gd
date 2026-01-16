@@ -70,11 +70,12 @@ func correct_temporal_state(snapshot: Dictionary, over_time_msec: float) -> void
 		)
 		tween.finished.connect(func(): clone.queue_free())
 
-func init_clone(predecessor: BattleCharacter) -> void:
+func init_clone(predecessor: BattleCharacter, new_color: Color) -> void:
 	spawn_position = predecessor.spawn_position
 	ship_explosion = null
 	team_id = predecessor.team_id
 	skin_layers = predecessor.skin_layers # set skin from predecessor(_ready will construct the skin)
+	color = new_color
 
 func in_battle() -> bool:
 	return (
